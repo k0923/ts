@@ -1,0 +1,28 @@
+{
+    "name": "@k0923/cache",
+    "version": "0.1.0",
+    "description": "灵活的缓存实现，支持多种存储后端",
+    "main": "dist/cache.js",
+    "types": "dist/cache.d.ts",
+    "scripts": {
+        "build": "tsc --project tsconfig.json",
+        "prepublishOnly": "npm run build"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "keywords": [
+        "cache",
+        "typescript",
+        "localStorage"
+    ],
+    "author": "您的名字",
+    "license": "MIT",
+    "devDependencies": {
+        "typescript": "^4.x.x"
+    }
+}
