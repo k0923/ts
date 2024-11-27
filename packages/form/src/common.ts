@@ -1,7 +1,6 @@
-import type { BaseEditor } from "./editor"
-import type { ReactEditor } from "./model"
+import type { BaseEditor, EditorProps } from "./editor"
 
 export interface CommonEditor<Value = any, Parent = any> extends BaseEditor<Value, Parent> {
     type: 'common'
-    Component: ReactEditor<Value, Parent>
+    Component: React.FC<Omit<EditorProps<Value, Parent>, 'path'>>
 }
