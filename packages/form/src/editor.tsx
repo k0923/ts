@@ -5,6 +5,10 @@ import type { ObjectEditor } from "./object";
 import type { TreeNode } from "./tree";
 import { buildArrayEditor } from "./array"
 import { buildObjectEditor } from "./object"
+import { resolveEditorNode } from "./utils";
+import { useContext, useEffect, useState } from "react";
+import { FormContext, type IFormContext } from "./context";
+// import { useFormData } from "./context";
 
 export type Editor<Value = any, Parent = any> = CommonEditor<Value, Parent> | ArrayEditor<Value, Parent> | ObjectEditor<Value, Parent>
 
@@ -26,6 +30,7 @@ export interface BaseEditorProps<Value = any, Parent = any> {
 }
 
 export interface EditorProps<Value = any, Parent = any> extends BaseEditorProps<Value, Parent> {
+    ctx: IFormContext
     path: Path
     onChange?: (v?: Value) => void
 }
@@ -35,65 +40,80 @@ export interface FormEditorConfig {
     setFieldValue: (path: (number | string)[]) => void
 }
 
-interface FormEditorProps<Value = any, Parent = any> extends EditorProps<Value, Parent> {
-    addvalidpath?: (path: Path) => void
-    setfieldvalue?: (path: Path, value?: Value) => void
-}
+// export interface FormEditorProps<Value = any, Parent = any> extends EditorProps<Value, Parent> {
+//     addvalidpath?: (path: Path) => void
+//     setfieldvalue?: (path: Path, value?: Value) => void
+// }
 
 
 
 export interface FormItemProps {
     children: React.ReactNode
     path: (string | number)[]
-    required?: boolean
-    title?: React.ReactNode
-    desc?: React.ReactNode
     editor?: Editor
+    value: any
 }
 
 export type FormItem = React.FC<FormItemProps>
 
 
-export function buildCommonFormEditor(editor: Editor | undefined, FormItem: FormItem): React.FC<FormEditorProps> {
-    const Children = getEditorChildren(editor, FormItem);
+export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ ctx: IFormContext, path: Path }> {
+    const Children = buildCommonFormEditor(editor, FormItem)
 
-    return (props) => {
-        if (!editor) return null;
-        const { path, value, parent, setfieldvalue, addvalidpath, onChange } = props;
-        const Title = resolveEditorNode(editor.Title, props);
-        const Desc = resolveEditorNode(editor.Desc, props);
 
-        const required = typeof editor.required === 'function'
-            ? editor.required({ value, parent })
-            : editor.required;
+    return props => {
+        const { ctx, path } = props
+        const [value, setValue] = useState<any>()
+        useEffect(() => {
+            const strPath = path.join('.')
+            if (strPath) {
+                ctx.registerHook({
+                    type: 'field',
+                    data: {
+                        path,
+                        handler: setValue
+                    }
+                })
+            } else {
+                ctx.registerHook({
+                    type: 'data',
+                    data: setValue
+                })
+            }
+        }, [])
 
-        const newOnChange = setfieldvalue
-            ? (v: any) => setfieldvalue(path, v)
-            : onChange;
+        return <Children value={value} ctx={ctx} path={path} />
 
-        // 如果editor有valueHandler，则不调用setFieldValue
-        const sfv = editor.valueHandler ? undefined : setfieldvalue;
 
-        if (editor.validator) {
-            addvalidpath?.(path);
-        }
-
-        return (
-            <FormItem
-                editor={editor}
-                title={Title}
-                desc={Desc}
-                path={path}
-                required={required}
-            >
-                <Children {...props} setfieldvalue={sfv} onChange={newOnChange} />
-            </FormItem>
-        );
-    };
+    }
 }
 
 
-function getEditorChildren(editor: Editor | undefined, FormItem: FormItem): React.FC<FormEditorProps> {
+export function buildCommonFormEditor(editor: Editor | undefined, FormItem: FormItem): React.FC<EditorProps> {
+    const Children = getEditorChildren(editor, FormItem);
+
+    return (props) => {
+        const { onChange, path, value, ctx } = props
+        if (!editor) {
+            return null
+        }
+        let newOnChange = onChange
+        if (editor.valueHandler) {
+            newOnChange = (v: any) => {
+                ctx.setFieldValue(path, v)
+            }
+        }
+
+        return (
+            <FormItem value={value} path={path} editor={editor}>
+                <Children {...props} onChange={newOnChange} />
+            </FormItem>
+        )
+    }
+}
+
+
+function getEditorChildren(editor: Editor | undefined, FormItem: FormItem): React.FC<EditorProps> {
     if (!editor) return () => null;
     switch (editor.type) {
         case 'array':
@@ -102,18 +122,11 @@ function getEditorChildren(editor: Editor | undefined, FormItem: FormItem): Reac
             return buildObjectEditor(editor, e => buildCommonFormEditor(e, FormItem));
         case 'common':
             return (props) => {
-                const { addvalidpath, setfieldvalue, ...newProps } = props;
+                const { ...newProps } = props;
                 return <editor.Component {...newProps} />;
             };
         default:
             return () => null;
     }
-}
-
-function resolveEditorNode<T>(
-    node: EditorNode<T, any> | undefined,
-    props: FormEditorProps
-): React.ReactNode {
-    return typeof node === 'function' ? node(props) : node;
 }
 
