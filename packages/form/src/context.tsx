@@ -27,6 +27,7 @@ export interface IFormContext {
     setFieldValue(path: Path, value: any): void
     registerHook(hook: Hook): void
     unRegisterHook(hook: Hook): void
+    validFields(pathlist: Path[]): void
 }
 
 export class DefaultFormContext<T extends object = any> {
@@ -41,8 +42,11 @@ export class DefaultFormContext<T extends object = any> {
     }
 
     getFieldValue(path: Path): any {
-        const pathStr = path.join('.')
-        return get(this._data, pathStr)
+        if (path && path.length > 0) {
+            const pathStr = path.join('.')
+            return get(this._data, pathStr)
+        }
+        return this._data
     }
 
     registerHook(hook: Hook) {
@@ -75,16 +79,23 @@ export class DefaultFormContext<T extends object = any> {
         }
     }
 
-
     setFieldValue(path: Path, value: any) {
-        const pathStr = path.join('.')
-        set(this._data, pathStr, value)
-        for (const handler of this._fieldHooks.get(pathStr) ?? []) {
-            handler(value)
+        if (path && path.length > 0) {
+            const pathStr = path.join('.')
+            set(this._data, pathStr, value)
+            for (const handler of this._fieldHooks.get(pathStr) ?? []) {
+                handler(value)
+            }
+        } else {
+            this._data = value
         }
         for (const handler of this._dataHooks) {
             handler(this._data)
         }
+    }
+
+    validFields(pathlist:Path[]) {
+        
     }
 
 }

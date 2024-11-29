@@ -30,6 +30,7 @@ export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, f
         const { path, value, onChange, parent } = props
         const changeHandler = (newValue?: any, key?: string) => {
             const last = value
+            console.log(key, newValue, value)
             let result: any
             if (key) {
                 result = { ...value, [key]: newValue }
@@ -37,7 +38,7 @@ export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, f
                 result = { ...newValue }
             }
             result = editor.valueHandler?.(result, last, parent) ?? result
-            onChange?.(result)
+            onChange?.({ ...result })
         }
 
         // const parentNode = parent?.addChild(key, value)

@@ -1,5 +1,5 @@
 import { get } from 'lodash'
-import type { BaseEditor, Editor } from './editor'
+import type { Path } from './model'
 export type Key = string | number
 
 export class TreeNode<T> {
@@ -20,31 +20,27 @@ export class TreeNode<T> {
     }
 }
 
-export interface FormNode extends BaseEditor {
-   
+
+
+
+export class Parent {
+    constructor(private _root: any, private _path: Path) { }
+
+    get data() {
+        return get(this._root, this._path.join('.'))
+    }
+
+    get parent(): Parent | null {
+        if (this._path.length === 0) {
+            return null
+        }
+        return new Parent(this._root, this._path.slice(0, -1))
+    }
+
+    next(path: Path): Parent {
+        return new Parent(this._root, path)
+    }
 }
 
-export interface FormContext {
-
-}
-
-// function buildEditor(editor: Editor) {
-// }
-
-
-
-
-
-
-// export interface Test {
-//     onChange: (v: any) => void
-// }
-
-// export class FormTreeNode<T extends Test> extends TreeNode<T> {
-//     constructor(data: T, parent?: TreeNode<T>) {
-//         super(data, parent)
-//         this.data.onChange =
-//     }
-// }
 
 

@@ -1,35 +1,33 @@
+import { useEffect, useState } from "react";
 import type { ArrayEditor } from "./array";
+import { buildArrayEditor } from "./array";
 import type { CommonEditor } from "./common";
+import { type IFormContext } from "./context";
 import type { Path, Validator } from "./model";
 import type { ObjectEditor } from "./object";
-import type { TreeNode } from "./tree";
-import { buildArrayEditor } from "./array"
-import { buildObjectEditor } from "./object"
-import { resolveEditorNode } from "./utils";
-import { useContext, useEffect, useState } from "react";
-import { FormContext, type IFormContext } from "./context";
-// import { useFormData } from "./context";
+import { buildObjectEditor } from "./object";
+import type { Parent } from "./tree";
 
-export type Editor<Value = any, Parent = any> = CommonEditor<Value, Parent> | ArrayEditor<Value, Parent> | ObjectEditor<Value, Parent>
+export type Editor<Value = any> = CommonEditor<Value> | ArrayEditor<Value> | ObjectEditor<Value>
 
-export type EditorNode<Value = any, Parent = any> = React.ReactNode | ((props: Omit<EditorProps<Value, Parent>, 'onChange'>) => React.ReactNode)
+export type EditorNode<Value = any> = React.ReactNode | ((props: Omit<EditorProps<Value>, 'onChange'>) => React.ReactNode)
 
-export type RequiredFn<Value = any, Parent = any> = ((props: BaseEditorProps<Value, Parent>) => boolean) | boolean
+export type RequiredFn<Value = any> = ((props: BaseEditorProps<Value>) => boolean) | boolean
 
-export interface BaseEditor<Value = any, Parent = any> {
-    Title?: EditorNode<Value, Parent>
-    Desc?: EditorNode<Value, Parent>
-    required?: RequiredFn<Value, Parent> | boolean
+export interface BaseEditor<Value = any> {
+    Title?: EditorNode<Value>
+    Desc?: EditorNode<Value>
+    required?: RequiredFn<Value> | boolean
     validator?: Validator<Value>
-    valueHandler?: (currentValue: Value, lastValue: Value, parent?: TreeNode<Parent>) => Value | undefined
+    valueHandler?: (currentValue: Value, lastValue: Value, parent?: Parent) => Value | undefined
 }
 
-export interface BaseEditorProps<Value = any, Parent = any> {
+export interface BaseEditorProps<Value = any> {
     value?: Value
-    parent?: TreeNode<Parent>
+    parent?: Parent
 }
 
-export interface EditorProps<Value = any, Parent = any> extends BaseEditorProps<Value, Parent> {
+export interface EditorProps<Value = any> extends BaseEditorProps<Value> {
     ctx: IFormContext
     path: Path
     onChange?: (v?: Value) => void
@@ -57,32 +55,40 @@ export interface FormItemProps {
 export type FormItem = React.FC<FormItemProps>
 
 
-export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ ctx: IFormContext, path: Path }> {
+export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ ctx: IFormContext, path?: Path }> {
     const Children = buildCommonFormEditor(editor, FormItem)
 
 
     return props => {
         const { ctx, path } = props
         const [value, setValue] = useState<any>()
-        useEffect(() => {
-            const strPath = path.join('.')
-            if (strPath) {
-                ctx.registerHook({
-                    type: 'field',
-                    data: {
-                        path,
-                        handler: setValue
-                    }
-                })
-            } else {
-                ctx.registerHook({
-                    type: 'data',
-                    data: setValue
-                })
-            }
-        }, [])
+        const newPath = path ?? []
 
-        return <Children value={value} ctx={ctx} path={path} />
+
+        useEffect(() => {
+            ctx.registerHook({
+                type: 'data',
+                data: v => {
+                    let value = ctx.getFieldValue(newPath)
+                    if (Array.isArray(value)) {
+                        value = [...value]
+                    } else if (typeof value === 'object') {
+                        value = { ...value }
+                    }
+
+                    setValue(value)
+                }
+            })
+
+            return () => {
+                ctx.unRegisterHook({ type: 'data', data: setValue })
+            }
+        }, [...newPath])
+
+        return <Children value={value} ctx={ctx} path={newPath} onChange={v => {
+            console.log(newPath, v)
+            ctx.setFieldValue(newPath, v)
+        }} />
 
 
     }
@@ -98,6 +104,7 @@ export function buildCommonFormEditor(editor: Editor | undefined, FormItem: Form
             return null
         }
         let newOnChange = onChange
+
         if (editor.valueHandler) {
             newOnChange = (v: any) => {
                 ctx.setFieldValue(path, v)

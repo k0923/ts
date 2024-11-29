@@ -1,17 +1,17 @@
 import type { BaseEditor, BaseEditorProps, Editor, EditorProps, FormItem } from "./editor"
 import type { UnArray } from "./model"
 
-export interface ArrayEditorWrapperProps<Value = any, Parent = any> extends BaseEditorProps<Value, Parent> {
+export interface ArrayEditorWrapperProps<Value = any> extends BaseEditorProps<Value> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
     remove: (index: number) => void
     move: (oldIndex: number, newIndex: number) => void
     Components: { index: number, value?: UnArray<Value>, Comp: React.ReactElement }[]
 }
 
-export interface ArrayEditor<Value = any, Parent = any> extends BaseEditor<Value, Parent> {
+export interface ArrayEditor<Value = any> extends BaseEditor<Value> {
     type: 'array'
-    editor: Editor<Value, Parent>
-    Wrapper: React.FC<ArrayEditorWrapperProps<Value, Parent>>
+    editor: Editor<Value>
+    Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
 
 export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fetcher: (editor: Editor) => React.FC<T>): React.FC<T> {
@@ -55,7 +55,6 @@ export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fet
             changeHandler(newData)
         }
 
-        const parentNode = parent?.addChild(value)
 
         const Components: { index: number, value?: any; Comp: React.ReactElement }[] =
             (value as any[])?.map((itemV, index) => {

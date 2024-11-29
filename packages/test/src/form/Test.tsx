@@ -3,8 +3,9 @@ import { buildFormEditor, DefaultFormContext, Editor, FormContext } from "@k0923
 // import { FormContext, FormContextInstance, FormContextV2, useFormDataV2 } from "@k0923/form"
 import { Path } from "@k0923/form/src/model"
 import { TreeNode } from "@k0923/form/src/tree"
-import { useContext, cloneElement, useState } from "react"
+import { useContext, cloneElement, useState, useMemo } from "react"
 import { User } from "./Form"
+import { resolveEditorNode } from "@k0923/form/src/utils"
 
 // export function FormItem(props: { label: React.ReactNode, path: TreeNode<Path>, children: React.ReactElement }) {
 //     const context = useContext(FormContextInstance)
@@ -18,9 +19,37 @@ import { User } from "./Form"
 // }
 
 export default function (props: any) {
-    const [ctx, _] = useState(new DefaultFormContext({}))
+    const ctx = useMemo(() => new DefaultFormContext({}), [])
 
-    const UserEditor = useMemo(()=>{buildFormEditor(userEditor,)},[])
+    const UserEditor = useMemo(() => {
+        return buildFormEditor(userEditor, props => {
+            const { path, children, editor, value } = props
+
+
+
+            const Title = resolveEditorNode(editor?.Title, props);
+            const Desc = resolveEditorNode(editor?.Desc, props);
+
+
+
+
+
+            if (editor?.type === 'object') {
+                return (
+                    <Form.Item noStyle={{ showErrorTip: true }}>
+                        {children}
+                    </Form.Item>
+                )
+            }
+            return (
+                <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc} >
+                    {children}
+                </Form.Item>
+            )
+        })
+    }, [])
+
+    return <UserEditor path={["test"]} ctx={ctx} />
 
 
 
@@ -97,8 +126,7 @@ export const userEditor: Editor<User> = {
                 return false
             },
             Component: props => {
-                // console.log(props.value)
-                // console.log(props.parent, props.value)
+
                 return <Input {...props} />
             }
         },
@@ -132,7 +160,10 @@ export const userEditor: Editor<User> = {
             },
             items: {
                 name: {
-                    Title: "公司",
+                    Title: props => {
+
+                        return `公司${props.value?.length ?? 0}`
+                    },
                     type: 'common',
                     Component: props => {
                         // console.log(props.parent, props.value)
