@@ -1,18 +1,17 @@
 import type { BaseEditor, BaseEditorProps, Editor, EditorProps } from "./editor"
 import type { KeyOf } from "./model"
-import type { TreeNode } from "./tree"
 
-export interface ObjectWrapperProps<Value = any, Parent = any> extends BaseEditorProps<Value, Parent> {
+export interface ObjectWrapperProps<Value = any> extends BaseEditorProps<Value> {
     Components: { [key in KeyOf<Value>]?: React.ReactElement }
     update: (newValue?: Value) => void
 }
 
-export interface ObjectEditor<Value = any, Parent = any> extends BaseEditor<Value, Parent> {
+export interface ObjectEditor<Value = any> extends BaseEditor<Value> {
     type: 'object'
     items: {
-        [key in KeyOf<Value>]?: Editor<Value[key], Value>
+        [key in KeyOf<Value>]?: Editor<Value[key]>
     }
-    Wrapper?: React.FC<ObjectWrapperProps<Value, Parent>>
+    Wrapper?: React.FC<ObjectWrapperProps<Value>>
 }
 
 export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, fetcher: (editor?: Editor) => React.FC<T>): React.FC<T> {
@@ -27,17 +26,16 @@ export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, f
 
 
     const Children = (props: T) => {
-        const { path, value, onChange, parent } = props
+        const { path, value, onChange, node } = props
         const changeHandler = (newValue?: any, key?: string) => {
             const last = value
-            console.log(key, newValue, value)
             let result: any
             if (key) {
                 result = { ...value, [key]: newValue }
             } else {
                 result = { ...newValue }
             }
-            result = editor.valueHandler?.(result, last, parent) ?? result
+            result = editor.valueHandler?.(result, last, node) ?? result
             onChange?.({ ...result })
         }
 
@@ -45,7 +43,7 @@ export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, f
 
         const buildComp = (item: { key: string; Editor: React.FC<T> }) => {
             const newPath = [...path, item.key]
-            const node = parent?.addChild(item.key, value?.[item.key])
+            const subNode = node?.next(item.key)
 
             return (
                 <item.Editor
@@ -53,7 +51,7 @@ export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, f
                     key={item.key}
                     path={newPath}
                     value={value?.[item.key]}
-                    parent={node}
+                    node={subNode}
                     onChange={(v) => changeHandler(v, item.key)}
                 />
             )
@@ -69,7 +67,7 @@ export function buildObjectEditor<T extends EditorProps>(editor: ObjectEditor, f
             return (
                 <editor.Wrapper
                     value={value}
-                    parent={parent}
+                    node={node}
                     Components={comps}
                     update={changeHandler}
                 />

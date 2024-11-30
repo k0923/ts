@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ArrayEditor } from "./array";
 import { buildArrayEditor } from "./array";
 import type { CommonEditor } from "./common";
@@ -6,7 +6,7 @@ import { type IFormContext } from "./context";
 import type { Path, Validator } from "./model";
 import type { ObjectEditor } from "./object";
 import { buildObjectEditor } from "./object";
-import type { Parent } from "./tree";
+import { Node } from "./tree";
 
 export type Editor<Value = any> = CommonEditor<Value> | ArrayEditor<Value> | ObjectEditor<Value>
 
@@ -19,12 +19,12 @@ export interface BaseEditor<Value = any> {
     Desc?: EditorNode<Value>
     required?: RequiredFn<Value> | boolean
     validator?: Validator<Value>
-    valueHandler?: (currentValue: Value, lastValue: Value, parent?: Parent) => Value | undefined
+    valueHandler?: (currentValue: Value, lastValue: Value, node?: Node) => Value | undefined
 }
 
 export interface BaseEditorProps<Value = any> {
     value?: Value
-    parent?: Parent
+    node?: Node
 }
 
 export interface EditorProps<Value = any> extends BaseEditorProps<Value> {
@@ -50,6 +50,7 @@ export interface FormItemProps {
     path: (string | number)[]
     editor?: Editor
     value: any
+    node?: Node
 }
 
 export type FormItem = React.FC<FormItemProps>
@@ -63,6 +64,12 @@ export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ 
         const { ctx, path } = props
         const [value, setValue] = useState<any>()
         const newPath = path ?? []
+        const config = useMemo(() => ({ caches: new Map<string, Node>(), data: ctx.getFieldValue(newPath) }), [newPath.join('.')])
+        const node = useMemo(() => {
+            return new Node(config, newPath)
+        }, [config, newPath.join('.')])
+
+        console.log(config.caches.size)
 
 
         useEffect(() => {
@@ -75,7 +82,7 @@ export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ 
                     } else if (typeof value === 'object') {
                         value = { ...value }
                     }
-
+                    config.data = ctx.getFieldValue([])
                     setValue(value)
                 }
             })
@@ -85,8 +92,8 @@ export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ 
             }
         }, [...newPath])
 
-        return <Children value={value} ctx={ctx} path={newPath} onChange={v => {
-            console.log(newPath, v)
+        return <Children value={value} ctx={ctx} path={newPath} node={node} onChange={v => {
+            
             ctx.setFieldValue(newPath, v)
         }} />
 
@@ -99,7 +106,7 @@ export function buildCommonFormEditor(editor: Editor | undefined, FormItem: Form
     const Children = getEditorChildren(editor, FormItem);
 
     return (props) => {
-        const { onChange, path, value, ctx } = props
+        const { onChange, path, value, ctx,node } = props
         if (!editor) {
             return null
         }
@@ -112,7 +119,7 @@ export function buildCommonFormEditor(editor: Editor | undefined, FormItem: Form
         }
 
         return (
-            <FormItem value={value} path={path} editor={editor}>
+            <FormItem value={value} path={path} node={node} editor={editor}>
                 <Children {...props} onChange={newOnChange} />
             </FormItem>
         )
@@ -136,4 +143,3 @@ function getEditorChildren(editor: Editor | undefined, FormItem: FormItem): Reac
             return () => null;
     }
 }
-

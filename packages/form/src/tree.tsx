@@ -21,26 +21,50 @@ export class TreeNode<T> {
 }
 
 
+interface NodeConfig<T=any> {
+    caches:Map<string,Node<T>>
+    data:T
+}
 
 
-export class Parent {
-    constructor(private _root: any, private _path: Path) { }
-
+export class Node<T=any> {
+    private getPathKey(path: Path): string {
+        return path.join('.')
+    }
+    
+    constructor(private config:NodeConfig<T>,private path:Path){}
+    
     get data() {
-        return get(this._root, this._path.join('.'))
+        return get(this.config.data, this.getPathKey(this.path))
     }
 
-    get parent(): Parent | null {
-        if (this._path.length === 0) {
+    get parent():Node<T> | null {
+        if (this.path.length === 0) {
             return null
         }
-        return new Parent(this._root, this._path.slice(0, -1))
+        const parentPath = this.path.slice(0, -1)
+        let parentNode = this.config.caches.get(parentPath.join('.'))
+        if(!parentNode) {
+            parentNode = new Node(this.config,parentPath)
+            this.config.caches.set(parentPath.join('.'),parentNode)
+        } 
+        return parentNode
     }
 
-    next(path: Path): Parent {
-        return new Parent(this._root, path)
+    next(segment: string | number): Node<T> {
+        const newPath = [...this.path, segment]
+        const pathKey = this.getPathKey(newPath)
+        
+        let node = this.config.caches.get(pathKey)
+        if (!node) {
+            node = new Node(this.config, newPath)
+            this.config.caches.set(pathKey, node)
+        }
+        return node
     }
+
 }
+
 
 
 

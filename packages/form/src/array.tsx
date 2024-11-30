@@ -17,11 +17,11 @@ export interface ArrayEditor<Value = any> extends BaseEditor<Value> {
 export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fetcher: (editor: Editor) => React.FC<T>): React.FC<T> {
     const Comp = fetcher(editor.editor)
     const Children = (props: T) => {
-        const { path, onChange, value, parent } = props
+        const { path, onChange, value, node } = props
         const changeHandler = (data: any) => {
             let result = data
             if (editor.valueHandler) {
-                result = editor.valueHandler(result, value, parent)
+                result = editor.valueHandler(result, value, node)
             }
             onChange?.(result)
         }
@@ -58,6 +58,7 @@ export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fet
 
         const Components: { index: number, value?: any; Comp: React.ReactElement }[] =
             (value as any[])?.map((itemV, index) => {
+                const subNode = node?.next([...path, index])
                 const newPath = [...path, index]
                 return {
                     index: index,
@@ -68,7 +69,7 @@ export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fet
                             key={index}
                             path={newPath}
                             value={itemV}
-                            parent={parentNode}
+                            node={subNode}
                             onChange={(newV) => {
                                 const newData = [...value]
                                 newData[index] = newV
@@ -84,7 +85,7 @@ export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fet
                 add={add}
                 remove={remove}
                 move={move}
-                parent={parent}
+                node={node}
                 value={value}
             />
         )

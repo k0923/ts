@@ -1,4 +1,4 @@
-import { Input, InputNumber, Form, Grid } from "@arco-design/web-react"
+import { Input, InputNumber, Form, Grid, Button } from "@arco-design/web-react"
 import { buildFormEditor, DefaultFormContext, Editor, FormContext } from "@k0923/form"
 // import { FormContext, FormContextInstance, FormContextV2, useFormDataV2 } from "@k0923/form"
 import { Path } from "@k0923/form/src/model"
@@ -18,19 +18,17 @@ import { resolveEditorNode } from "@k0923/form/src/utils"
 
 // }
 
-export default function (props: any) {
+function YoungForm() {
     const ctx = useMemo(() => new DefaultFormContext({}), [])
 
     const UserEditor = useMemo(() => {
-        return buildFormEditor(userEditor, props => {
-            const { path, children, editor, value } = props
+        return buildFormEditor(getLargeSizeEditor(), props => {
+            const { path, children, editor, value, node } = props
 
 
 
             const Title = resolveEditorNode(editor?.Title, props);
             const Desc = resolveEditorNode(editor?.Desc, props);
-
-
 
 
 
@@ -42,7 +40,7 @@ export default function (props: any) {
                 )
             }
             return (
-                <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc} >
+                <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={JSON.stringify(node?.data)}>
                     {children}
                 </Form.Item>
             )
@@ -50,22 +48,12 @@ export default function (props: any) {
     }, [])
 
     return <UserEditor path={["test"]} ctx={ctx} />
+}
 
+export default function (props: any) {
 
+    return <YoungForm />
 
-    // return (
-    //     <FormContextInstance.Provider value={new FormContextV2({})}>
-    //         <FormItem path={tree} label="人员">
-    //             <People />
-    //         </FormItem>
-    //         <FormItem path={tree.addChild('name', ['people', 'name'])} label="姓名">
-    //             <Input />
-    //         </FormItem>
-    //         <FormItem path={tree.addChild('age', ['people', 'age'])} label="年龄">
-    //             <InputNumber />
-    //         </FormItem>
-    //     </FormContextInstance.Provider>
-    // )
 }
 
 export function People(props: any) {
@@ -79,28 +67,50 @@ export function People(props: any) {
 export function TestForm() {
     const [form] = Form.useForm()
 
-    form.setFieldValue = (f, v) => { console.log(f, v) }
-
-    const people = Form.useWatch('people', form)
-    console.log(people)
-
-    form.setFieldValue('people.name', '李四')
-
     return (
         <Form form={form} initialValues={{ people: { name: '张三', age: 18 } }}>
-            <Form.Item field="people" label="人员">
-                <People />
-            </Form.Item>
-            <Form.Item field="people.name" label="姓名">
-                <Input />
-            </Form.Item>
-            <Form.Item field="people.age" label="年龄">
-                <InputNumber />
-            </Form.Item>
+            {
+                Array.from({ length: 1000 }).map((_, i) => {
+                    return <Form.Item key={`name${i}`} field={`name${i}`} label={`名称${i}`}>
+                        <Input />
+                    </Form.Item>
+                })
+            }
+            <Button onClick={() => {
+                form.setFieldValue('people.age', 19)
+                console.log(form.getFieldsValue())
+            }}>测试</Button>
         </Form>
     )
 }
 
+function getLargeSizeEditor(): Editor<any> {
+    const editor: Editor<any> = {
+        type: 'object',
+        items: {}
+    }
+
+
+    for (let i = 0; i < 100; i++) {
+        editor.items[`name${i}`] = {
+            Title: `名称${i}`,
+            type: 'common',
+            required: (v) => {
+                const { value } = v
+                if (!value || value.length < 5) {
+                    return true
+                }
+                console.log('hit')
+                return false
+            },
+            Component: props => {
+
+                return <Input {...props} />
+            }
+        }
+    }
+    return editor
+}
 
 export const userEditor: Editor<User> = {
     type: 'object',
