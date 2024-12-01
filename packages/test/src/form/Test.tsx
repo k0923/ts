@@ -1,11 +1,10 @@
-import { Input, InputNumber, Form, Grid, Button } from "@arco-design/web-react"
-import { buildFormEditor, DefaultFormContext, Editor, FormContext } from "@k0923/form"
+import { Button, Form, Input, InputNumber } from "@arco-design/web-react"
+import { buildFormEditor, DefaultFormContextV2, Editor } from "@k0923/form"
 // import { FormContext, FormContextInstance, FormContextV2, useFormDataV2 } from "@k0923/form"
-import { Path } from "@k0923/form/src/model"
-import { TreeNode } from "@k0923/form/src/tree"
-import { useContext, cloneElement, useState, useMemo } from "react"
-import { User } from "./Form"
+import { Node } from "@k0923/form/src/tree"
 import { resolveEditorNode } from "@k0923/form/src/utils"
+import { useEffect, useMemo } from "react"
+import { User } from "./Form"
 
 // export function FormItem(props: { label: React.ReactNode, path: TreeNode<Path>, children: React.ReactElement }) {
 //     const context = useContext(FormContextInstance)
@@ -19,19 +18,16 @@ import { resolveEditorNode } from "@k0923/form/src/utils"
 // }
 
 function YoungForm() {
-    const ctx = useMemo(() => new DefaultFormContext({}), [])
+    const [ctx,node] = useMemo(() => {
+        
+        return [new DefaultFormContextV2({"company":{name:"abc",address:"123"}}),new Node({data:{},caches:new Map()},[])]
+    }, [])
 
     const UserEditor = useMemo(() => {
-        return buildFormEditor(getLargeSizeEditor(), props => {
-            const { path, children, editor, value, node } = props
-
-
-
+        return buildFormEditor(userEditor, props => {
+            const {  children, editor, node } = props
             const Title = resolveEditorNode(editor?.Title, props);
             const Desc = resolveEditorNode(editor?.Desc, props);
-
-
-
             if (editor?.type === 'object') {
                 return (
                     <Form.Item noStyle={{ showErrorTip: true }}>
@@ -40,14 +36,14 @@ function YoungForm() {
                 )
             }
             return (
-                <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={JSON.stringify(node?.data)}>
+                <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc}>
                     {children}
                 </Form.Item>
             )
         })
     }, [])
 
-    return <UserEditor path={["test"]} ctx={ctx} />
+    return <UserEditor ctx={ctx} />
 }
 
 export default function (props: any) {
@@ -69,15 +65,18 @@ export function TestForm() {
 
     return (
         <Form form={form} initialValues={{ people: { name: '张三', age: 18 } }}>
-            {
+            {/* {
                 Array.from({ length: 1000 }).map((_, i) => {
                     return <Form.Item key={`name${i}`} field={`name${i}`} label={`名称${i}`}>
                         <Input />
                     </Form.Item>
                 })
-            }
+            } */}
+            <Form.Item field="people.age" label="年龄">
+                <InputNumber/>
+            </Form.Item>
             <Button onClick={() => {
-                form.setFieldValue('people.age', 19)
+                form.setFieldValue('people', { age: 19 })
                 console.log(form.getFieldsValue())
             }}>测试</Button>
         </Form>
@@ -91,20 +90,20 @@ function getLargeSizeEditor(): Editor<any> {
     }
 
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 1000; i++) {
         editor.items[`name${i}`] = {
             Title: `名称${i}`,
             type: 'common',
-            required: (v) => {
-                const { value } = v
-                if (!value || value.length < 5) {
-                    return true
-                }
-                console.log('hit')
-                return false
-            },
+            // required: (v) => {
+            //     const { value } = v
+            //     if (!value || value.length < 5) {
+            //         return true
+            //     }
+            //     console.log('hit')
+            //     return false
+            // },
             Component: props => {
-
+                // console.log(props.value)
                 return <Input {...props} />
             }
         }
@@ -126,15 +125,15 @@ export const userEditor: Editor<User> = {
         name: {
             Title: "姓名",
             type: 'common',
-            required: (v) => {
-                console.log(v)
-                const { value } = v
-                if (!value || value.length < 5) {
-                    return true
-                }
-                console.log('hit')
-                return false
-            },
+            // required: (v) => {
+            //     console.log(v)
+            //     const { value } = v
+            //     if (!value || value.length < 5) {
+            //         return true
+            //     }
+            //     console.log('hit')
+            //     return false
+            // },
             Component: props => {
 
                 return <Input {...props} />
@@ -143,15 +142,15 @@ export const userEditor: Editor<User> = {
         age: {
             Title: "年龄",
             type: 'common',
-            required: (v) => {
-                console.log(v)
-                const { value } = v
-                if (!value || value < 5) {
-                    return true
-                }
-                console.log('hit')
-                return false
-            },
+            // required: (v) => {
+            //     console.log(v)
+            //     const { value } = v
+            //     if (!value || value < 5) {
+            //         return true
+            //     }
+            //     console.log('hit')
+            //     return false
+            // },
             Component: props => (< InputNumber {...props} />)
         },
         company: {
@@ -163,19 +162,34 @@ export const userEditor: Editor<User> = {
 
             },
             valueHandler: (c, l, p) => {
-                if (c.name === "abc") {
-                    c.name = "bcd"
+                if (c.name === "bcd") {
+                    c.name = "abc"
                 }
                 return c
             },
             items: {
                 name: {
+                    valueHandler:(c,l) => {
+                       
+                        if(c === "abc") {
+                            return "bcd"
+                        }
+                        return c
+                    },
                     Title: props => {
-
-                        return `公司${props.value?.length ?? 0}`
+                        
+                        return `公司${props.node.data?.length ?? 0}`
+                    },
+                    Desc: props=> {
+                        return props.node.data
                     },
                     type: 'common',
                     Component: props => {
+                        useEffect(()=>{
+                            return () => {
+                                console.log("clean company")
+                            }
+                        },[])
                         // console.log(props.parent, props.value)
                         return <Input {...props} />
                     },

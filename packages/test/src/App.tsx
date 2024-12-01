@@ -2,8 +2,8 @@ import { useState } from 'react'
 
 // import './App.css'
 import { sleep, userEditor } from './form/Form'
-import { BuildForm } from './form/Form'
-import { BuildArcoForm } from './form/MyForm'
+
+
 import { Button, Form, Input } from '@arco-design/web-react'
 import Test from './form/Test'
 
@@ -14,9 +14,9 @@ function App() {
   const f = new Set<any>()
   f.add(setCount)
   console.log(Array.from(f).length)
-  const F = BuildArcoForm(userEditor)
+  
 
-  const [form] = Form.useForm()
+  
   return <Test />
 
   // return (

@@ -21,7 +21,7 @@ export class TreeNode<T> {
 }
 
 
-interface NodeConfig<T=any> {
+export interface NodeConfig<T=any> {
     caches:Map<string,Node<T>>
     data:T
 }
@@ -33,6 +33,10 @@ export class Node<T=any> {
     }
     
     constructor(private config:NodeConfig<T>,private path:Path){}
+
+    get Path():Path {
+        return [...this.path]
+    }
     
     get data() {
         return get(this.config.data, this.getPathKey(this.path))
@@ -51,8 +55,8 @@ export class Node<T=any> {
         return parentNode
     }
 
-    next(segment: string | number): Node<T> {
-        const newPath = [...this.path, segment]
+    next(...segment: Path): Node<T> {
+        const newPath = [...this.path, ...segment]
         const pathKey = this.getPathKey(newPath)
         
         let node = this.config.caches.get(pathKey)

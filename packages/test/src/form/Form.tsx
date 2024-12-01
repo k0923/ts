@@ -1,151 +1,151 @@
 import { Button, Form, Input, InputNumber, RulesProps } from '@arco-design/web-react'
 
-import { buildCommonFormEditor, Editor } from '@k0923/form'
+import { Editor } from '@k0923/form'
 import { TreeNode } from '@k0923/form/src/tree'
 import { useMemo, useState } from 'react'
 
-export function BuildArcoForm(editor: Editor): React.FC<{ path: (string | number)[] }> {
-    const Comp = buildCommonFormEditor(editor, props => {
-        const { path, title, desc, children, required, editor } = props
-        const rules = useMemo(() => {
-            const rules: RulesProps[] = []
-            if (required) {
-                rules.push({ required: true })
-            }
-            if (editor?.validator) {
-                rules.push({
-                    validator: (v, cb) => {
-                        const err = editor.validator!(v)
-                        if (err) {
-                            if (err instanceof Promise) {
-                                return new Promise<void>((resolve) => {
-                                    err.then(e => {
-                                        if (e) {
-                                            cb(e)
-                                        }
-                                        resolve()
-                                    })
-                                })
-                            } else {
-                                if (err) {
-                                    cb(err)
-                                }
-                            }
-                        }
-                    }
-                })
-            }
-            return rules
-        }, [editor?.validator, required])
+// export function BuildArcoForm(editor: Editor): React.FC<{ path: (string | number)[] }> {
+//     const Comp = buildCommonFormEditor(editor, props => {
+//         const { path, title, desc, children, required, editor } = props
+//         const rules = useMemo(() => {
+//             const rules: RulesProps[] = []
+//             if (required) {
+//                 rules.push({ required: true })
+//             }
+//             if (editor?.validator) {
+//                 rules.push({
+//                     validator: (v, cb) => {
+//                         const err = editor.validator!(v)
+//                         if (err) {
+//                             if (err instanceof Promise) {
+//                                 return new Promise<void>((resolve) => {
+//                                     err.then(e => {
+//                                         if (e) {
+//                                             cb(e)
+//                                         }
+//                                         resolve()
+//                                     })
+//                                 })
+//                             } else {
+//                                 if (err) {
+//                                     cb(err)
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 })
+//             }
+//             return rules
+//         }, [editor?.validator, required])
 
 
 
 
 
-        if (editor?.type === 'object') {
-            return (
-                <Form.Item field={path.join('.')} noStyle={{ showErrorTip: true }} rules={rules}>
-                    {children}
-                </Form.Item>
-            )
-        }
-        return (
-            <Form.Item required={required} hasFeedback={required} rules={rules} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={title} field={path.join('.')} colon extra={desc} >
-                {children}
-            </Form.Item>
-        )
-    })
+//         if (editor?.type === 'object') {
+//             return (
+//                 <Form.Item field={path.join('.')} noStyle={{ showErrorTip: true }} rules={rules}>
+//                     {children}
+//                 </Form.Item>
+//             )
+//         }
+//         return (
+//             <Form.Item required={required} hasFeedback={required} rules={rules} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={title} field={path.join('.')} colon extra={desc} >
+//                 {children}
+//             </Form.Item>
+//         )
+//     })
 
 
-    return props => {
-        const { path } = props
-        const { form } = Form.useFormContext()
-        const data = Form.useWatch(path.join("."), form)
+//     return props => {
+//         const { path } = props
+//         const { form } = Form.useFormContext()
+//         const data = Form.useWatch(path.join("."), form)
 
-        return (
-            <Comp value={data} path={path} onChange={v => {
-                console.log(v)
-            }} />
-        )
-    }
-}
+//         return (
+//             <Comp value={data} path={path} onChange={v => {
+//                 console.log(v)
+//             }} />
+//         )
+//     }
+// }
 
-function ProxyComp(props: { children: React.ReactNode }) {
-    return props.children
-}
+// function ProxyComp(props: { children: React.ReactNode }) {
+//     return props.children
+// }
 
-export function BuildForm(editor: Editor): React.FC<{ field: string }> {
-    const Comp = buildCommonFormEditor(editor, props => {
-        const { path, title, desc, children, required, editor } = props
-        console.log(required, title)
+// export function BuildForm(editor: Editor): React.FC<{ field: string }> {
+//     const Comp = buildCommonFormEditor(editor, props => {
+//         const { path, title, desc, children, required, editor } = props
+//         console.log(required, title)
 
-        const rules: RulesProps[] = []
-        if (required) {
-            rules.push({ required: true })
-        }
-        if (editor?.validator) {
-            rules.push({
-                validator: (v, cb) => {
-                    const err = editor.validator!(v)
-                    if (err) {
-                        if (err instanceof Promise) {
-                            return new Promise<void>((resolve) => {
-                                err.then(e => {
-                                    if (e) {
-                                        cb(e)
-                                    }
-                                    resolve()
-                                })
-                            })
-                        } else {
-                            if (err) {
-                                cb(err)
-                            }
-                        }
-                    }
-                }
-            })
-        }
-
-
-        if (editor?.type === 'object') {
-            return (
-                <Form.Item field={path.join('.')} noStyle={{ showErrorTip: true }} rules={rules}>
-                    {children}
-                </Form.Item>
-            )
-        }
-        return (
-            <Form.Item required={required} hasFeedback={required} rules={rules} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={title} field={path.join('.')} colon extra={desc} >
-                {children}
-            </Form.Item>
-        )
-    })
+//         const rules: RulesProps[] = []
+//         if (required) {
+//             rules.push({ required: true })
+//         }
+//         if (editor?.validator) {
+//             rules.push({
+//                 validator: (v, cb) => {
+//                     const err = editor.validator!(v)
+//                     if (err) {
+//                         if (err instanceof Promise) {
+//                             return new Promise<void>((resolve) => {
+//                                 err.then(e => {
+//                                     if (e) {
+//                                         cb(e)
+//                                     }
+//                                     resolve()
+//                                 })
+//                             })
+//                         } else {
+//                             if (err) {
+//                                 cb(err)
+//                             }
+//                         }
+//                     }
+//                 }
+//             })
+//         }
 
 
-    const parent = new TreeNode({})
+//         if (editor?.type === 'object') {
+//             return (
+//                 <Form.Item field={path.join('.')} noStyle={{ showErrorTip: true }} rules={rules}>
+//                     {children}
+//                 </Form.Item>
+//             )
+//         }
+//         return (
+//             <Form.Item required={required} hasFeedback={required} rules={rules} labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={title} field={path.join('.')} colon extra={desc} >
+//                 {children}
+//             </Form.Item>
+//         )
+//     })
 
-    return props => {
-        const { field } = props
-        const [form] = Form.useForm()
-        const [data, setData] = useState<any>({})
 
-        // const d = Form.useWatch(field, form)
-        // console.log(d)
-        return (
-            <>
-                <Form form={form} onValuesChange={(v, vs) => { console.log(v); setData(vs) }} onSubmit={(v) => {
-                    setData(v)
-                }}>
-                    <Comp value={data} parent={parent} path={[]} addvalidpath={() => { }} />
-                    <Button type='primary' htmlType='submit'>提交</Button>
-                </Form >
-                <pre>{JSON.stringify(data, null, 2)}</pre>
-            </>
+//     const parent = new TreeNode({})
 
-        )
-    }
-}
+//     return props => {
+//         const { field } = props
+//         const [form] = Form.useForm()
+//         const [data, setData] = useState<any>({})
+
+//         // const d = Form.useWatch(field, form)
+//         // console.log(d)
+//         return (
+//             <>
+//                 <Form form={form} onValuesChange={(v, vs) => { console.log(v); setData(vs) }} onSubmit={(v) => {
+//                     setData(v)
+//                 }}>
+//                     <Comp value={data} parent={parent} path={[]} addvalidpath={() => { }} />
+//                     <Button type='primary' htmlType='submit'>提交</Button>
+//                 </Form >
+//                 <pre>{JSON.stringify(data, null, 2)}</pre>
+//             </>
+
+//         )
+//     }
+// }
 
 export interface Class {
     students: User[]
