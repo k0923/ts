@@ -1,17 +1,18 @@
 import { get } from 'lodash'
 import type { Path } from './model'
+import type { Editor } from './editor'
 export type Key = string | number
 
 export class TreeNode<T> {
-    private children: Map<Key, TreeNode<T>>
+    private children: Set<TreeNode<T>>
 
     constructor(public readonly data: T, public readonly parent?: TreeNode<T>) {
-        this.children = new Map()
+        this.children = new Set()
     }
 
-    addChild(key: Key, data: T): TreeNode<T> {
+    addChild(data: T): TreeNode<T> {
         const node = new TreeNode(data, this)
-        this.children.set(key, node)
+        this.children.add(node)
         return node
     }
 
@@ -69,6 +70,14 @@ export class Node<T=any> {
 
 }
 
+export class EditorNode extends TreeNode<{editor:Editor}> { 
 
+    constructor(editor:Editor,parent?:EditorNode) {
+        super({editor},parent)
+    }
 
+}
 
+function test() {
+   
+}
