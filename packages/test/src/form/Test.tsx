@@ -1,9 +1,9 @@
-import { Button, Form, Input, InputNumber } from "@arco-design/web-react"
+import { Button, Form, Grid, Input, InputNumber } from "@arco-design/web-react"
 import { buildFormEditor, DefaultFormContextV2, Editor } from "@k0923/form"
 // import { FormContext, FormContextInstance, FormContextV2, useFormDataV2 } from "@k0923/form"
-import { Node } from "@k0923/form/src/tree"
+import { ArrayEditorNode, CommonEditorNode, FormData, NodeConfig, ObjectEditorNode } from "@k0923/form/src/tree"
 import { resolveEditorNode } from "@k0923/form/src/utils"
-import { useEffect, useMemo } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { User } from "./Form"
 
 // export function FormItem(props: { label: React.ReactNode, path: TreeNode<Path>, children: React.ReactElement }) {
@@ -17,38 +17,89 @@ import { User } from "./Form"
 
 // }
 
-function YoungForm() {
-    const [ctx,node] = useMemo(() => {
-        
-        return [new DefaultFormContextV2({"company":{name:"abc",address:"123"}}),new Node({data:{},caches:new Map()},[])]
+
+
+function YoungFormV2() {
+    const [data, setData] = useState<any>()
+    const resolver = useCallback((config: NodeConfig) => {
+        if (config.editor.type === 'object') {
+            return new ObjectEditorNode(config)
+        }
+        if (config.editor.type === 'array') {
+            return new ArrayEditorNode(config)
+        }
+        return new CommonEditorNode(config)
     }, [])
 
-    const UserEditor = useMemo(() => {
-        return buildFormEditor(userEditor, props => {
-            const {  children, editor, node } = props
-            const Title = resolveEditorNode(editor?.Title, props);
-            const Desc = resolveEditorNode(editor?.Desc, props);
-            if (editor?.type === 'object') {
-                return (
-                    <Form.Item noStyle={{ showErrorTip: true }}>
-                        {children}
-                    </Form.Item>
-                )
-            }
+    const node = useMemo(() => new ObjectEditorNode({
+        data: new FormData({ Hobbies: ["123"] }, v => {
+            setData({ ...v })
+        }),
+        editor: userEditor,
+        path: [],
+        resolver: resolver,
+    }), [resolver])
+
+
+
+    const UserEditor = useMemo(() => node.build(props => {
+        const { children, editor, node } = props
+        const Title = resolveEditorNode(editor?.Title, props);
+        const Desc = resolveEditorNode(editor?.Desc, props);
+        if (editor?.type === 'object' || editor?.type === 'array') {
             return (
-                <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc}>
+                <Form.Item noStyle={{ showErrorTip: true }}>
                     {children}
                 </Form.Item>
             )
-        })
-    }, [])
+        }
+        return (
+            <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc}>
+                {children}
+            </Form.Item>
+        )
+    }), [node])
+    return (
+        <>
+            <UserEditor />
+            <pre>{JSON.stringify(data, null, 4)}</pre>
+        </>
 
-    return <UserEditor ctx={ctx} />
+    )
 }
+
+
+// function YoungForm() {
+//     const [ctx, node] = useMemo(() => {
+//         return [new DefaultFormContextV2({ "company": { name: "abc", address: "123" } }), new Node({ data: {}, caches: new Map() }, [])]
+//     }, [])
+
+//     const UserEditor = useMemo(() => {
+//         return buildFormEditor(userEditor, props => {
+//             const { children, editor, node } = props
+//             const Title = resolveEditorNode(editor?.Title, props);
+//             const Desc = resolveEditorNode(editor?.Desc, props);
+//             if (editor?.type === 'object') {
+//                 return (
+//                     <Form.Item noStyle={{ showErrorTip: true }}>
+//                         {children}
+//                     </Form.Item>
+//                 )
+//             }
+//             return (
+//                 <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc}>
+//                     {children}
+//                 </Form.Item>
+//             )
+//         })
+//     }, [])
+
+//     return <UserEditor ctx={ctx} />
+// }
 
 export default function (props: any) {
 
-    return <YoungForm />
+    return <YoungFormV2 />
 
 }
 
@@ -73,7 +124,7 @@ export function TestForm() {
                 })
             } */}
             <Form.Item field="people.age" label="年龄">
-                <InputNumber/>
+                <InputNumber />
             </Form.Item>
             <Button onClick={() => {
                 form.setFieldValue('people', { age: 19 })
@@ -162,34 +213,34 @@ export const userEditor: Editor<User> = {
 
             },
             valueHandler: (c, l, p) => {
-                if (c.name === "bcd") {
+                if (c.name === "bcd1") {
                     c.name = "abc"
                 }
                 return c
             },
             items: {
                 name: {
-                    valueHandler:(c,l) => {
-                       
-                        if(c === "abc") {
+                    valueHandler: (c, l) => {
+
+                        if (c === "abc") {
                             return "bcd"
                         }
                         return c
                     },
                     Title: props => {
-                        
-                        return `公司${props.node.data?.length ?? 0}`
+
+                        return `公司`
                     },
-                    Desc: props=> {
-                        return props.node.data
+                    Desc: props => {
+                        return ""
                     },
                     type: 'common',
                     Component: props => {
-                        useEffect(()=>{
+                        useEffect(() => {
                             return () => {
                                 console.log("clean company")
                             }
-                        },[])
+                        }, [])
                         // console.log(props.parent, props.value)
                         return <Input {...props} />
                     },
@@ -216,6 +267,49 @@ export const userEditor: Editor<User> = {
                         return undefined
                     }
                 }
+            }
+        },
+        Hobbies: {
+
+            type: 'array',
+            editor: {
+                type: 'common',
+                Title: "爱好",
+                Component: props => {
+                    return <Input {...props} />
+                }
+            },
+            Wrapper: (props) => {
+                const { add, Components, remove, move } = props
+
+                return (
+                    <>
+                        {
+                            Components.map((item, index) => {
+                                return <Grid.Row key={index}>
+                                    <Grid.Col span={18}>
+                                        {item.Comp}
+                                    </Grid.Col>
+                                    <Grid.Col span={3}>
+                                        <Button onClick={() => { add(undefined, index + 1) }}>添加</Button>
+                                    </Grid.Col>
+                                    <Grid.Col span={3}>
+                                        <Button onClick={() => { remove(index) }}>删除</Button>
+                                    </Grid.Col>
+                                </Grid.Row>
+
+                            })
+                        }
+
+
+                    </>
+                )
+
+
+
+
+
+
             }
         }
     }

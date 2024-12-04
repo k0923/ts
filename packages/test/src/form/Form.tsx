@@ -160,6 +160,7 @@ export interface User {
     name: string
     age: number
     company: Company
+    Hobbies: string[]
 }
 
 
