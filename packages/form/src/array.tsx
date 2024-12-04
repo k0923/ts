@@ -1,7 +1,7 @@
-import type { BaseEditor, BaseEditorProps, Editor, EditorProps, FormItem } from "./editor"
+import type { BaseEditor, Editor, EditorProps, FormItem } from "./editor"
 import type { UnArray } from "./model"
 
-export interface ArrayEditorWrapperProps<Value = any> extends BaseEditorProps<Value> {
+export interface ArrayEditorWrapperProps<Value = any> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
     remove: (index: number) => void
     move: (oldIndex: number, newIndex: number) => void
@@ -10,7 +10,7 @@ export interface ArrayEditorWrapperProps<Value = any> extends BaseEditorProps<Va
 
 export interface ArrayEditor<Value = any> extends BaseEditor<Value> {
     type: 'array'
-    editor: Editor<Value>
+    editor: Editor<UnArray<Value>>
     Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
 

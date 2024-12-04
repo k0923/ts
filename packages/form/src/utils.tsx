@@ -1,4 +1,5 @@
 import type { EditorNode, EditorProps } from "./editor";
+import type { Path } from "./model";
 
 export function resolveEditorNode<T>(
     node: EditorNode<T> | undefined,
@@ -7,11 +8,13 @@ export function resolveEditorNode<T>(
     return typeof node === 'function' ? node(props as any) : node;
 }
 
-function set(obj: any, path: (string | number)[] | null | undefined, value: any): any {
+export function set(obj: any, p: Path, value: any): any {
     // 如果路径为 null、undefined 或空数组，直接返回 value
-    if (!path || path.length === 0) {
+    if (!p || p.length === 0) {
         return value
     }
+
+    const path = p.flat()
 
     // 如果对象为 null 或 undefined，或者类型与路径不匹配，根据第一个路径类型创建新的容器
     if (obj == null ||

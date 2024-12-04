@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest'
-import { createCacheObj, expireFetch, NewMapStore, type IO } from './cache'
+import { createCacheObj, expireFetch, NewMapStore, type IO } from '../src/cache'
 
 interface User {
     name: string

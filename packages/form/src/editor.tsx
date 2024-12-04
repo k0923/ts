@@ -1,12 +1,11 @@
-import { useEffect } from "react";
-import { buildCommonEditor, useFormValue, type CommonEditor } from "./common";
+import type { ArrayEditor } from "./array";
+import { type CommonEditor } from "./common";
 import { DefaultFormContextV2 } from "./context";
 import type { Validator } from "./model";
 import type { ObjectEditor } from "./object";
 import { buildObjectEditor } from "./object";
-import { Node } from "./tree";
 
-export type Editor<Value = any> = CommonEditor<Value> | ObjectEditor<Value>
+export type Editor<Value = any> = CommonEditor<Value> | ObjectEditor<Value> | ArrayEditor<Value>
 
 export type EditorNode<Value = any> = React.ReactNode | ((props: Omit<EditorProps<Value>, 'onChange'>) => React.ReactNode)
 
@@ -18,10 +17,6 @@ export interface BaseEditor<Value = any> {
     required?: RequiredFn<Value> | boolean
     validator?: Validator<Value>
     valueHandler?: (currentValue: Value, lastValue: Value, node?: Node) => Value | undefined
-}
-
-export interface BaseEditorProps {
-    node: Node
 }
 
 export interface EditorProps<Value = any> extends BaseEditorProps {
@@ -44,12 +39,12 @@ export type FormItem = React.FC<FormItemProps>
 
 
 
-export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ctx:DefaultFormContextV2}> {
+export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ ctx: DefaultFormContextV2 }> {
     const Editor = buildEditor(editor, FormItem);
 
     return (props) => {
-        const {ctx} = props
-        return <Editor ctx={ctx} node={ctx.Root}/>
+        const { ctx } = props
+        return <Editor ctx={ctx} node={ctx.Root} />
     }
 }
 
@@ -57,8 +52,8 @@ function buildEditor(editor: Editor, FormItem: FormItem): React.FC<EditorProps> 
     const Children = getEditorChildren(editor, FormItem);
 
     return (props) => {
-        const { node,ctx } = props
-        useFormValue(ctx,node,editor)
+        const { node, ctx } = props
+        useFormValue(ctx, node, editor)
         return <FormItem node={node} editor={editor}>
             <Children {...props} />
         </FormItem>
