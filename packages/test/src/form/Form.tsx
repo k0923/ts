@@ -38,10 +38,6 @@ import { useMemo, useState } from 'react'
 //             return rules
 //         }, [editor?.validator, required])
 
-
-
-
-
 //         if (editor?.type === 'object') {
 //             return (
 //                 <Form.Item field={path.join('.')} noStyle={{ showErrorTip: true }} rules={rules}>
@@ -55,7 +51,6 @@ import { useMemo, useState } from 'react'
 //             </Form.Item>
 //         )
 //     })
-
 
 //     return props => {
 //         const { path } = props
@@ -107,7 +102,6 @@ import { useMemo, useState } from 'react'
 //             })
 //         }
 
-
 //         if (editor?.type === 'object') {
 //             return (
 //                 <Form.Item field={path.join('.')} noStyle={{ showErrorTip: true }} rules={rules}>
@@ -121,7 +115,6 @@ import { useMemo, useState } from 'react'
 //             </Form.Item>
 //         )
 //     })
-
 
 //     const parent = new TreeNode({})
 
@@ -163,11 +156,9 @@ export interface User {
     Hobbies: string[]
 }
 
-
-
 export const userEditor: Editor<User> = {
     type: 'object',
-    Title: "用户",
+    Title: '用户',
     // valueHandler: (c, l, p) => {
     //     let age = c?.age ?? 0
     //     return {
@@ -177,9 +168,9 @@ export const userEditor: Editor<User> = {
     // },
     items: {
         name: {
-            Title: "姓名",
+            Title: '姓名',
             type: 'common',
-            required: (v) => {
+            required: v => {
                 console.log(v)
                 const { value } = v
                 if (!value || value.length < 5) {
@@ -192,12 +183,12 @@ export const userEditor: Editor<User> = {
                 // console.log(props.value)
                 // console.log(props.parent, props.value)
                 return <Input {...props} />
-            }
+            },
         },
         age: {
-            Title: "年龄",
+            Title: '年龄',
             type: 'common',
-            required: (v) => {
+            required: v => {
                 console.log(v)
                 const { value } = v
                 if (!value || value < 5) {
@@ -206,25 +197,24 @@ export const userEditor: Editor<User> = {
                 console.log('hit')
                 return false
             },
-            Component: props => (< InputNumber {...props} />)
+            Component: props => <InputNumber {...props} />,
         },
         company: {
             type: 'object',
-            validator: (c) => {
-                if (!c || c.name === "") {
-                    return "公司信息不能为空"
+            validator: c => {
+                if (!c || c.name === '') {
+                    return '公司信息不能为空'
                 }
-
             },
             valueHandler: (c, l, p) => {
-                if (c.name === "abc") {
-                    c.name = "bcd"
+                if (c.name === 'abc') {
+                    c.name = 'bcd'
                 }
                 return c
             },
             items: {
                 name: {
-                    Title: "公司",
+                    Title: '公司',
                     type: 'common',
                     Component: props => {
                         // console.log(props.parent, props.value)
@@ -239,26 +229,24 @@ export const userEditor: Editor<User> = {
                     // }
                 },
                 address: {
-                    Title: "地址",
+                    Title: '地址',
                     type: 'common',
                     Component: props => {
                         // console.log(props.parent, props.value)
                         return <Input {...props} />
                     },
-                    validator: (v) => {
-
+                    validator: v => {
                         if (v && v.length > 5) {
-                            return "长度不能大于5"
+                            return '长度不能大于5'
                         }
                         return undefined
-                    }
-                }
-            }
-        }
-    }
+                    },
+                },
+            },
+        },
+    },
 }
 
 export const sleep = (ms: number): Promise<void> => {
-    return new Promise(resolve => setTimeout(resolve, ms));
-};
-
+    return new Promise(resolve => setTimeout(resolve, ms))
+}

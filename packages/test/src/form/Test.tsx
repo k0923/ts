@@ -1,106 +1,190 @@
-import { Button, Form, Grid, Input, InputNumber } from "@arco-design/web-react"
-import { buildFormEditor, DefaultFormContextV2, Editor } from "@k0923/form"
-// import { FormContext, FormContextInstance, FormContextV2, useFormDataV2 } from "@k0923/form"
-import { ArrayEditorNode, CommonEditorNode, FormData, NodeConfig, ObjectEditorNode } from "@k0923/form/src/tree"
-import { resolveEditorNode } from "@k0923/form/src/utils"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { User } from "./Form"
+import { Button, Form, Grid, Input, InputNumber, Radio } from '@arco-design/web-react'
+import { BuildEditor, Editor } from '@k0923/form'
 
-// export function FormItem(props: { label: React.ReactNode, path: TreeNode<Path>, children: React.ReactElement }) {
-//     const context = useContext(FormContextInstance)
-//     const value = useFormDataV2(props.path)
+import { useEffect, useState } from 'react'
 
-//     const Node = cloneElement(props.children, { ...props.children.props, value: value, onChange: (v: any) => context.setFieldValue(props.path, v) })
-//     return <Form.Item label={props.label}>
-//         {Node}
-//     </Form.Item>
+export interface Company {
+    name: string
+    address: string
+    Employees: User[]
+}
 
-// }
+export interface User {
+    name: string
+    age: number
+    gender: 'male' | 'female'
+    Hobbies: string[]
+}
 
+export const userEditor: Editor<User> = {
+    type: 'object',
+    Wrapper: props => {
+        const { Components } = props
+        return (
+            <>
+                <Form.Item label="姓名">{Components.name}</Form.Item>
+                <Form.Item label="年龄">{Components.age}</Form.Item>
+                <Form.Item label="性别">{Components.gender}</Form.Item>
+                {Components.Hobbies}
+            </>
+        )
+    },
+    items: {
+        name: {
+            type: 'common',
+            Component: props => {
+                return <Input {...props} />
+            },
+        },
+        age: {
+            type: 'common',
+            Component: props => <InputNumber {...props} />,
+        },
+        gender: {
+            type: 'common',
+            Component: props => {
+                return (
+                    <Radio.Group value={props.value} onChange={props.onChange}>
+                        <Radio value="male">男性</Radio>
+                        <Radio value="female">女性</Radio>
+                    </Radio.Group>
+                )
+            },
+        },
+        Hobbies: {
+            type: 'array',
+            editor: {
+                type: 'common',
 
+                Component: props => {
+                    return <Input {...props} />
+                },
+            },
+            Wrapper: props => {
+                const { add, Components, remove, move, value } = props
+                if (!value || value.length === 0) {
+                    return (
+                        <Form.Item label=" ">
+                            <Button onClick={() => add(undefined, 0)}>添加爱好</Button>
+                        </Form.Item>
+                    )
+                }
+                return (
+                    <>
+                        {Components.map((item, index) => {
+                            return (
+                                <Form.Item key={index} label={`爱好${index}`}>
+                                    <Grid.Row>
+                                        <Grid.Col span={10}>{item.Comp}</Grid.Col>
+                                        <Grid.Col span={10}>
+                                            <Button
+                                                onClick={() => {
+                                                    add(undefined, index + 1)
+                                                }}
+                                            >
+                                                添加
+                                            </Button>
+
+                                            <Button
+                                                onClick={() => {
+                                                    remove(index)
+                                                }}
+                                            >
+                                                删除
+                                            </Button>
+                                        </Grid.Col>
+                                    </Grid.Row>
+                                </Form.Item>
+                            )
+                        })}
+                    </>
+                )
+            },
+        },
+    },
+}
+
+export const companyEditor: Editor<Company> = {
+    type: 'object',
+    Wrapper: props => {
+        return (
+            <>
+                <Form.Item label="公司">{props.Components.name}</Form.Item>
+                <Form.Item label="地址">{props.Components.address}</Form.Item>
+                {props.Components.Employees}
+            </>
+        )
+    },
+    items: {
+        name: {
+            valueHandler: (c, l) => {
+                if (c === 'abc') {
+                    return 'bcd'
+                }
+                return c
+            },
+
+            type: 'common',
+            Component: props => {
+                return <Input {...props} />
+            },
+        },
+        address: {
+            type: 'common',
+            Component: props => {
+                return <Input {...props} />
+            },
+            validator: v => {
+                if (v && v.length > 5) {
+                    return '长度不能大于5'
+                }
+                return undefined
+            },
+        },
+        Employees: {
+            type: 'array',
+            editor: userEditor,
+            Wrapper: ({ value, add, remove, Components }) => {
+                if (!value || value.length == 0) {
+                    return (
+                        <Form.Item label=" ">
+                            <Button onClick={() => add(undefined, 0)}>添加员工</Button>
+                        </Form.Item>
+                    )
+                }
+                return Components.map((item, index) => {
+                    return (
+                        <Form.Item key={index} label={`员工${index}`}>
+                            <Grid.Row>
+                                <Grid.Col span={20}>{item.Comp}</Grid.Col>
+                                <Grid.Col span={4}>
+                                    <Button onClick={() => remove(index)}>删除</Button>
+                                    <Button onClick={() => add(undefined, index + 1)}>添加</Button>
+                                </Grid.Col>
+                            </Grid.Row>
+                        </Form.Item>
+                    )
+                })
+            },
+        },
+    },
+}
 
 function YoungFormV2() {
     const [data, setData] = useState<any>()
-    const resolver = useCallback((config: NodeConfig) => {
-        if (config.editor.type === 'object') {
-            return new ObjectEditorNode(config)
-        }
-        if (config.editor.type === 'array') {
-            return new ArrayEditorNode(config)
-        }
-        return new CommonEditorNode(config)
-    }, [])
 
-    const node = useMemo(() => new ObjectEditorNode({
-        data: new FormData({ Hobbies: ["123"] }, v => {
-            setData({ ...v })
-        }),
-        editor: userEditor,
-        path: [],
-        resolver: resolver,
-    }), [resolver])
+    const Editor = BuildEditor(companyEditor)
 
-
-
-    const UserEditor = useMemo(() => node.build(props => {
-        const { children, editor, node } = props
-        const Title = resolveEditorNode(editor?.Title, props);
-        const Desc = resolveEditorNode(editor?.Desc, props);
-        if (editor?.type === 'object' || editor?.type === 'array') {
-            return (
-                <Form.Item noStyle={{ showErrorTip: true }}>
-                    {children}
-                </Form.Item>
-            )
-        }
-        return (
-            <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc}>
-                {children}
-            </Form.Item>
-        )
-    }), [node])
     return (
         <>
-            <UserEditor />
+            <Editor path={[]} />
             <pre>{JSON.stringify(data, null, 4)}</pre>
         </>
-
     )
 }
 
-
-// function YoungForm() {
-//     const [ctx, node] = useMemo(() => {
-//         return [new DefaultFormContextV2({ "company": { name: "abc", address: "123" } }), new Node({ data: {}, caches: new Map() }, [])]
-//     }, [])
-
-//     const UserEditor = useMemo(() => {
-//         return buildFormEditor(userEditor, props => {
-//             const { children, editor, node } = props
-//             const Title = resolveEditorNode(editor?.Title, props);
-//             const Desc = resolveEditorNode(editor?.Desc, props);
-//             if (editor?.type === 'object') {
-//                 return (
-//                     <Form.Item noStyle={{ showErrorTip: true }}>
-//                         {children}
-//                     </Form.Item>
-//                 )
-//             }
-//             return (
-//                 <Form.Item labelCol={{ span: 8 }} wrapperCol={{ span: 15 }} label={Title} colon extra={Desc}>
-//                     {children}
-//                 </Form.Item>
-//             )
-//         })
-//     }, [])
-
-//     return <UserEditor ctx={ctx} />
-// }
-
 export default function (props: any) {
-
     return <YoungFormV2 />
-
 }
 
 export function People(props: any) {
@@ -109,7 +193,6 @@ export function People(props: any) {
     const str = JSON.stringify(value)
     return <div>{str}</div>
 }
-
 
 export function TestForm() {
     const [form] = Form.useForm()
@@ -126,10 +209,14 @@ export function TestForm() {
             <Form.Item field="people.age" label="年龄">
                 <InputNumber />
             </Form.Item>
-            <Button onClick={() => {
-                form.setFieldValue('people', { age: 19 })
-                console.log(form.getFieldsValue())
-            }}>测试</Button>
+            <Button
+                onClick={() => {
+                    form.setFieldValue('people', { age: 19 })
+                    console.log(form.getFieldsValue())
+                }}
+            >
+                测试
+            </Button>
         </Form>
     )
 }
@@ -137,13 +224,11 @@ export function TestForm() {
 function getLargeSizeEditor(): Editor<any> {
     const editor: Editor<any> = {
         type: 'object',
-        items: {}
+        items: {},
     }
-
 
     for (let i = 0; i < 1000; i++) {
         editor.items[`name${i}`] = {
-            Title: `名称${i}`,
             type: 'common',
             // required: (v) => {
             //     const { value } = v
@@ -156,161 +241,8 @@ function getLargeSizeEditor(): Editor<any> {
             Component: props => {
                 // console.log(props.value)
                 return <Input {...props} />
-            }
+            },
         }
     }
     return editor
-}
-
-export const userEditor: Editor<User> = {
-    type: 'object',
-    Title: "用户",
-    // valueHandler: (c, l, p) => {
-    //     let age = c?.age ?? 0
-    //     return {
-    //         name: c?.name,
-    //         age: age++,
-    //     }
-    // },
-    items: {
-        name: {
-            Title: "姓名",
-            type: 'common',
-            // required: (v) => {
-            //     console.log(v)
-            //     const { value } = v
-            //     if (!value || value.length < 5) {
-            //         return true
-            //     }
-            //     console.log('hit')
-            //     return false
-            // },
-            Component: props => {
-
-                return <Input {...props} />
-            }
-        },
-        age: {
-            Title: "年龄",
-            type: 'common',
-            // required: (v) => {
-            //     console.log(v)
-            //     const { value } = v
-            //     if (!value || value < 5) {
-            //         return true
-            //     }
-            //     console.log('hit')
-            //     return false
-            // },
-            Component: props => (< InputNumber {...props} />)
-        },
-        company: {
-            type: 'object',
-            validator: (c) => {
-                if (!c || c.name === "") {
-                    return "公司信息不能为空"
-                }
-
-            },
-            valueHandler: (c, l, p) => {
-                if (c.name === "bcd1") {
-                    c.name = "abc"
-                }
-                return c
-            },
-            items: {
-                name: {
-                    valueHandler: (c, l) => {
-
-                        if (c === "abc") {
-                            return "bcd"
-                        }
-                        return c
-                    },
-                    Title: props => {
-
-                        return `公司`
-                    },
-                    Desc: props => {
-                        return ""
-                    },
-                    type: 'common',
-                    Component: props => {
-                        useEffect(() => {
-                            return () => {
-                                console.log("clean company")
-                            }
-                        }, [])
-                        // console.log(props.parent, props.value)
-                        return <Input {...props} />
-                    },
-                    // validator: async (v) => {
-                    //     await sleep(2000)
-                    //     if (v && v.length > 5) {
-                    //         return "长度不能大于5"
-                    //     }
-                    //     return undefined
-                    // }
-                },
-                address: {
-                    Title: "地址",
-                    type: 'common',
-                    Component: props => {
-                        // console.log(props.parent, props.value)
-                        return <Input {...props} />
-                    },
-                    validator: (v) => {
-
-                        if (v && v.length > 5) {
-                            return "长度不能大于5"
-                        }
-                        return undefined
-                    }
-                }
-            }
-        },
-        Hobbies: {
-
-            type: 'array',
-            editor: {
-                type: 'common',
-                Title: "爱好",
-                Component: props => {
-                    return <Input {...props} />
-                }
-            },
-            Wrapper: (props) => {
-                const { add, Components, remove, move } = props
-
-                return (
-                    <>
-                        {
-                            Components.map((item, index) => {
-                                return <Grid.Row key={index}>
-                                    <Grid.Col span={18}>
-                                        {item.Comp}
-                                    </Grid.Col>
-                                    <Grid.Col span={3}>
-                                        <Button onClick={() => { add(undefined, index + 1) }}>添加</Button>
-                                    </Grid.Col>
-                                    <Grid.Col span={3}>
-                                        <Button onClick={() => { remove(index) }}>删除</Button>
-                                    </Grid.Col>
-                                </Grid.Row>
-
-                            })
-                        }
-
-
-                    </>
-                )
-
-
-
-
-
-
-            }
-        }
-    }
 }

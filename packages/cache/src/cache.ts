@@ -11,7 +11,10 @@ export interface IO<Input, Output> {
 export type IOKey<T> = T extends IO<infer Input, infer Output> ? Input : string
 export type IOValue<T> = T extends IO<infer Input, infer Output> ? Output : T | undefined
 
-type Provider<T> = (last: CacheData<IOValue<T>> | null | undefined, key: IOKey<T>) => Promise<IOValue<T>>
+type Provider<T> = (
+    last: CacheData<IOValue<T>> | null | undefined,
+    key: IOKey<T>
+) => Promise<IOValue<T>>
 
 export interface Store<T> {
     set: (key: string, data: CacheData<IOValue<T>>) => Promise<void>
@@ -21,7 +24,6 @@ export interface Store<T> {
     convert: (key: IOKey<T>) => string
 }
 
-
 export type CacheHub<T = any> = {
     [K in keyof T]: {
         provider: Provider<T[K]>
@@ -29,14 +31,14 @@ export type CacheHub<T = any> = {
     }
 }
 
-
 export type KeyType<T> = Extract<keyof T, string>
 
-
-
-export function NewMapStore<T = any>(map: Map<string, CacheData<IOValue<T>>>, convert: (key: IOKey<T>) => string): Store<T> {
+export function NewMapStore<T = any>(
+    map: Map<string, CacheData<IOValue<T>>>,
+    convert: (key: IOKey<T>) => string
+): Store<T> {
     return {
-        get: (key) => {
+        get: key => {
             const result = map.get(`${key}`)
             return Promise.resolve(result)
         },
@@ -44,7 +46,7 @@ export function NewMapStore<T = any>(map: Map<string, CacheData<IOValue<T>>>, co
             map.set(`${key}`, value)
             return Promise.resolve()
         },
-        delete: (key) => {
+        delete: key => {
             map.delete(`${key}`)
             return Promise.resolve()
         },
@@ -52,7 +54,7 @@ export function NewMapStore<T = any>(map: Map<string, CacheData<IOValue<T>>>, co
             map.clear()
             return Promise.resolve()
         },
-        convert: (key) => {
+        convert: key => {
             return convert(key)
         },
     }
@@ -62,9 +64,12 @@ function buildLocalStorageKey(scope: string, key: string) {
     return `${scope}.${key}`
 }
 
-export function NewLocalStorage<T = any>(scope: string, convert: (key: IOKey<T>) => string): Store<T> {
+export function NewLocalStorage<T = any>(
+    scope: string,
+    convert: (key: IOKey<T>) => string
+): Store<T> {
     return {
-        get: (key) => {
+        get: key => {
             try {
                 const result = localStorage.getItem(buildLocalStorageKey(scope, key))
                 if (result) {
@@ -85,7 +90,7 @@ export function NewLocalStorage<T = any>(scope: string, convert: (key: IOKey<T>)
                 return Promise.reject(err)
             }
         },
-        delete: (key) => {
+        delete: key => {
             try {
                 localStorage.removeItem(buildLocalStorageKey(scope, key))
                 return Promise.resolve()
@@ -105,16 +110,14 @@ export function NewLocalStorage<T = any>(scope: string, convert: (key: IOKey<T>)
                     keyArr.push(key)
                 }
             }
-            keyArr.forEach((key) => {
+            keyArr.forEach(key => {
                 localStorage.removeItem(key)
             })
             return Promise.resolve()
         },
-        convert: (key) => convert(key),
+        convert: key => convert(key),
     }
 }
-
-
 
 export interface CacheApi<T> {
     get: (key: IOKey<T>) => Promise<IOValue<T>>
@@ -173,7 +176,11 @@ export function expireFetch<T>(fn: Provider<T>, milliseconds: number): Provider<
     }
 }
 
-function getPromise<T>(key: string, map: Map<string, Promise<T>>, provider: () => Promise<T>): Promise<T> {
+function getPromise<T>(
+    key: string,
+    map: Map<string, Promise<T>>,
+    provider: () => Promise<T>
+): Promise<T> {
     if (map.has(key)) {
         return map.get(key)!
     }

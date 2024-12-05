@@ -1,10 +1,7 @@
-import { get } from "lodash"
+import { get } from 'lodash'
 
 let a = {
-    "hello": {
-        "test": 123
-    }
+    hello: {
+        test: 123,
+    },
 }
-
-
-

@@ -1,95 +1,100 @@
-import type { BaseEditor, Editor, EditorProps, FormItem } from "./editor"
-import type { UnArray } from "./model"
+import type { FormItemWrapper, FormNode, Path } from './base'
 
-export interface ArrayEditorWrapperProps<Value = any> {
-    add: (defaultValue?: UnArray<Value>, index?: number) => void
-    remove: (index: number) => void
-    move: (oldIndex: number, newIndex: number) => void
-    Components: { index: number, value?: UnArray<Value>, Comp: React.ReactElement }[]
-}
+import type { ArrayEditor } from './editor'
+import { BaseEditorNode, type NodeConfig } from './base'
 
-export interface ArrayEditor<Value = any> extends BaseEditor<Value> {
-    type: 'array'
-    editor: Editor<UnArray<Value>>
-    Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
-}
+export class ArrayEditorNode extends BaseEditorNode {
+    constructor(config: NodeConfig) {
+        super(config)
+    }
 
-export function buildArrayEditor<T extends EditorProps>(editor: ArrayEditor, fetcher: (editor: Editor) => React.FC<T>): React.FC<T> {
-    const Comp = fetcher(editor.editor)
-    const Children = (props: T) => {
-        const { path, onChange, value, node } = props
-        const changeHandler = (data: any) => {
-            let result = data
-            if (editor.valueHandler) {
-                result = editor.valueHandler(result, value, node)
-            }
-            onChange?.(result)
+    build(FormItem?: FormItemWrapper): FormNode {
+        const editor = this.editor as ArrayEditor
+
+        const changeHandler = (path: Path, data: any[]) => {
+            this.setValue(path, data)
         }
 
-        const add = (defaultValue?: any, index?: number) => {
+        const add = (path: Path, currentValue: any[], newValue?: any, index?: number) => {
             let newData = undefined
             if (index === undefined) {
-                newData = [...(value ?? []), defaultValue]
+                newData = [...(currentValue ?? []), newValue]
             } else {
-                newData = [...(value ?? []).slice(0, index), defaultValue as any, ...(value ?? []).slice(index)]
+                newData = [
+                    ...(currentValue ?? []).slice(0, index),
+                    newValue,
+                    ...(currentValue ?? []).slice(index),
+                ]
             }
-            changeHandler(newData)
+            changeHandler(path, newData)
         }
 
-        const remove = (index: number) => {
-            const newData = [...(value ?? [])]
-            newData.splice(index, 1)
-            changeHandler(newData)
-        }
-
-        const move = (oldIndex: number, newIndex: number) => {
-            if (oldIndex === newIndex) {
+        const remove = (path: Path, currentValue: any[], index: number) => {
+            if (!currentValue) {
                 return
             }
-            const newData = [...(value ?? [])]
+            currentValue.splice(index, 1)
+            changeHandler(path, [...currentValue])
+        }
+
+        const move = (path: Path, currentValue: any[], oldIndex: number, newIndex: number) => {
+            if (oldIndex === newIndex || !currentValue) {
+                return
+            }
+            const newData = [...(currentValue ?? [])]
             if (newIndex >= newData.length) {
                 newIndex = newData.length - 1
             }
             const removeData = newData.splice(oldIndex, 1)[0]
             newData.splice(newIndex, 0, removeData)
-            changeHandler(newData)
+            changeHandler(path, newData)
         }
 
+        const child = this.resolver({
+            editor: editor.editor,
+            data: this.data,
+            resolver: this.resolver,
+            parent: this,
+        })
+        const Child = child.build(FormItem)
 
-        const Components: { index: number, value?: any; Comp: React.ReactElement }[] =
-            (value as any[])?.map((itemV, index) => {
-                const subNode = node?.next([...path, index])
-                const newPath = [...path, index]
-                return {
-                    index: index,
-                    value: itemV,
-                    Comp: (
-                        <Comp
-                            {...props}
-                            key={index}
-                            path={newPath}
-                            value={itemV}
-                            node={subNode}
-                            onChange={(newV) => {
-                                const newData = [...value]
-                                newData[index] = newV
-                                changeHandler(newData)
-                            }}
+        return ({ path }) => {
+            const value = this.useNode(path) as any[]
+
+            const Components: { index: number; value?: any; Comp: React.ReactElement }[] =
+                (value as any[])?.map((itemV, index) => {
+                    return {
+                        index: index,
+                        value: itemV,
+                        Comp: <Child path={[...path, index]} />,
+                    }
+                }) ?? []
+
+            if (!FormItem) {
+                return (
+                    <editor.Wrapper
+                        value={value}
+                        Components={Components}
+                        add={(v, i) => add(path, value, v, i)}
+                        remove={i => remove(path, value, i)}
+                        move={(o, n) => move(path, value, o, n)}
+                    />
+                )
+            }
+
+            return (
+                <FormItem editor={this.editor} path={path} node={this}>
+                    {
+                        <editor.Wrapper
+                            value={value}
+                            Components={Components}
+                            add={(v, i) => add(path, value, v, i)}
+                            remove={i => remove(path, value, i)}
+                            move={(o, n) => move(path, value, o, n)}
                         />
-                    ),
-                }
-            }) ?? []
-        return (
-            <editor.Wrapper
-                Components={Components}
-                add={add}
-                remove={remove}
-                move={move}
-                node={node}
-                value={value}
-            />
-        )
+                    }
+                </FormItem>
+            )
+        }
     }
-
-    return Children
 }

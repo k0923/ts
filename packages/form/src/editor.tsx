@@ -1,76 +1,64 @@
-import type { ArrayEditor } from "./array";
-import { type CommonEditor } from "./common";
-import { DefaultFormContextV2 } from "./context";
-import type { Validator } from "./model";
-import type { ObjectEditor } from "./object";
-import { buildObjectEditor } from "./object";
-
-export type Editor<Value = any> = CommonEditor<Value> | ObjectEditor<Value> | ArrayEditor<Value>
-
-export type EditorNode<Value = any> = React.ReactNode | ((props: Omit<EditorProps<Value>, 'onChange'>) => React.ReactNode)
-
-export type RequiredFn<Value = any> = ((props: BaseEditorProps) => boolean) | boolean
+import { useMemo } from 'react'
+import { type FormItemWrapper, type Path, FormData } from './base'
+import type { KeyOf, UnArray, Validator } from './model'
+import { DefaultResolver } from './resolver'
 
 export interface BaseEditor<Value = any> {
-    Title?: EditorNode<Value>
-    Desc?: EditorNode<Value>
-    required?: RequiredFn<Value> | boolean
     validator?: Validator<Value>
     valueHandler?: (currentValue: Value, lastValue: Value, node?: Node) => Value | undefined
 }
 
-export interface EditorProps<Value = any> extends BaseEditorProps {
-    ctx: DefaultFormContextV2
+export interface CommonEditor<Value = any> extends BaseEditor<Value> {
+    type: 'common'
+    Component: React.FC<{ value: Value; onChange: (v: Value) => void }>
 }
 
-export interface FormEditorConfig {
-    editor?: Editor
-    setFieldValue: (path: (number | string)[]) => void
+export interface ObjectWrapperProps<Value = any> {
+    Components: { [key in KeyOf<Value>]?: React.ReactElement }
+    update: (newValue?: Value) => void
 }
 
-export interface FormItemProps {
-    children: React.ReactNode
-    editor?: Editor
-    node?: Node
+export interface ObjectEditor<Value = any> extends BaseEditor<Value> {
+    type: 'object'
+    items: Partial<{
+        [key in KeyOf<Value>]: Editor<Value[key]>
+    }>
+    Wrapper?: React.FC<ObjectWrapperProps<Value>>
 }
 
-export type FormItem = React.FC<FormItemProps>
-
-
-
-
-export function buildFormEditor(editor: Editor, FormItem: FormItem): React.FC<{ ctx: DefaultFormContextV2 }> {
-    const Editor = buildEditor(editor, FormItem);
-
-    return (props) => {
-        const { ctx } = props
-        return <Editor ctx={ctx} node={ctx.Root} />
-    }
+export interface ArrayEditorWrapperProps<Value = any> {
+    add: (defaultValue?: UnArray<Value>, index?: number) => void
+    remove: (index: number) => void
+    move: (oldIndex: number, newIndex: number) => void
+    Components: { index: number; value?: UnArray<Value>; Comp: React.ReactElement }[]
+    value?: Value
 }
 
-function buildEditor(editor: Editor, FormItem: FormItem): React.FC<EditorProps> {
-    const Children = getEditorChildren(editor, FormItem);
-
-    return (props) => {
-        const { node, ctx } = props
-        useFormValue(ctx, node, editor)
-        return <FormItem node={node} editor={editor}>
-            <Children {...props} />
-        </FormItem>
-    }
+export interface ArrayEditor<Value = any> extends BaseEditor<Value> {
+    type: 'array'
+    editor: Editor<UnArray<Value>>
+    Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
 
+export type Editor<Value = any> = CommonEditor<Value> | ObjectEditor<Value> | ArrayEditor<Value>
 
-function getEditorChildren(editor: Editor, FormItem: FormItem): React.FC<EditorProps> {
-    if (!editor) return () => null;
-    switch (editor.type) {
-        // case 'array':
-        //     return buildArrayEditor(editor, e => buildCommonFormEditor(e, FormItem));
-        case 'object':
-            return buildObjectEditor(editor, e => buildEditor(e, FormItem));
-        case 'common':
-            return buildCommonEditor(editor)
-        default:
-            return () => null;
+export function BuildEditor(
+    editor: Editor,
+    FormItemWrapper?: FormItemWrapper
+): React.FC<{ initialData?: any; path: Path }> {
+    return ({ initialData, path }) => {
+        const node = useMemo(
+            () =>
+                DefaultResolver({
+                    editor: editor,
+                    data: new FormData(initialData),
+                    resolver: DefaultResolver,
+                }),
+            [editor]
+        )
+
+        const Children = useMemo(() => node.build(FormItemWrapper), [node])
+
+        return <Children path={path} />
     }
 }

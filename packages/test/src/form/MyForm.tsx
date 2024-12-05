@@ -1,11 +1,11 @@
-import { Form } from "@arco-design/web-react"
+import { Form } from '@arco-design/web-react'
 import React from 'react'
-import { RulesProps } from "@arco-design/web-react"
+import { RulesProps } from '@arco-design/web-react'
 // import { buildCommonFormEditor } from "@k0923/form"
 
-import { Editor } from "@k0923/form"
-import { useMemo } from "react"
-import { resolveEditorNode } from "@k0923/form/src/utils"
+import { Editor } from '@k0923/form'
+import { useMemo } from 'react'
+import { resolveEditorNode } from '@k0923/form/src/utils'
 
 function ProxyComp(props: any & { children: React.ReactElement }) {
     const { children, onChange, ...newProps } = props
@@ -59,10 +59,6 @@ function ReactFormItem(props: any & { children: React.ReactElement }) {
 
 //         const Title = resolveEditorNode(editor?.Title, props);
 //         const Desc = resolveEditorNode(editor?.Desc, props);
-
-
-
-
 
 //         if (editor?.type === 'object') {
 //             return (

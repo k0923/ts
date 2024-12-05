@@ -12,7 +12,7 @@ interface Config {
 }
 
 function wait(milliseconds: number) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         setTimeout(resolve, milliseconds)
     })
 }
@@ -28,22 +28,21 @@ describe.concurrent('test cache object', () => {
 
     const configCache = createCacheObj<Config>({
         token: {
-            store: NewMapStore(cache, (key) => `token.${key ?? ''}`),
+            store: NewMapStore(cache, key => `token.${key ?? ''}`),
             provider: expireFetch(() => {
                 return Promise.resolve(`hello_${count++}`)
             }, 3000),
         },
         user: {
-            store: NewMapStore(cache, (key) => `user.${key.name}`),
+            store: NewMapStore(cache, key => `user.${key.name}`),
             provider: (last, key) => {
                 if (last) {
                     return Promise.resolve(last.data)
                 }
                 return Promise.resolve(user)
             },
-        }
+        },
     })
-
 
     it('test cache token', async ({ expect }) => {
         let token = await configCache?.token.get('')
@@ -80,16 +79,14 @@ describe.concurrent('promise concurrent expire test 1', () => {
     let count = 0
     const cache = new Map<string, any>()
 
-
     const configCache = createCacheObj<ConcurrentPromise>({
         name: {
-            store: NewMapStore(cache, (key) => key ?? ''),
+            store: NewMapStore(cache, key => key ?? ''),
             provider: expireFetch((last, key) => {
                 return Promise.resolve(`${count++}`)
-            }, 1000)
-        }
+            }, 1000),
+        },
     })
-
 
     it('first', async ({ expect }) => {
         const name = await configCache.name.get('')
@@ -123,11 +120,11 @@ describe.concurrent('promise concurrent expire test 2', () => {
 
     const configCache = createCacheObj<ConcurrentPromise>({
         name: {
-            store: NewMapStore(cache, (key) => key ?? ''),
+            store: NewMapStore(cache, key => key ?? ''),
             provider: expireFetch((last, key) => {
                 return Promise.resolve(`${count++}`)
-            }, 1000)
-        }
+            }, 1000),
+        },
     })
 
     for (let i = 0; i < 3; i++) {
