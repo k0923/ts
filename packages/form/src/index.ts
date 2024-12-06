@@ -1,2 +1,2 @@
-export * from './editor'
-export * from './base'
+
+export * from './editor/index'

@@ -1,4 +1,5 @@
-import type { Path } from './common/type'
+import type { Path } from "../common/type"
+
 
 export function set(obj: any, p: Path, value: any): any {
     // 如果路径为 null、undefined 或空数组，直接返回 value
@@ -33,4 +34,30 @@ export function set(obj: any, p: Path, value: any): any {
         }
     })
     return obj
+}
+
+
+export function get(obj: any, p: Path): any {
+    // 如果路径为 null、undefined 或空数组，直接返回 undefined
+    if (!p || p.length === 0) {
+        return obj
+    }
+
+    const path = p.flat()
+
+    // 如果对象为 null 或 undefined，直接返回 undefined
+    if (obj == null) {
+        return undefined
+    }
+
+    let result = obj
+    // 遍历路径
+    for (const key of path) {
+        if (result == null) {
+            return undefined
+        }
+        result = result[key]
+    }
+
+    return result
 }
