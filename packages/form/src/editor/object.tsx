@@ -4,7 +4,8 @@ import type { IFormContext } from './context'
 
 export interface ObjectWrapperProps<Value = any> {
     Components: Partial<{ [key in keyof Value]: React.ReactElement }>
-    update: (newValue?: Value) => void
+    update: (newValue: Value) => void
+    value: Value
 }
 
 export interface ObjectEditorConfig<Value = any> extends BaseEditorConfig<Value> {
@@ -52,7 +53,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         })
 
         return ({ path }) => {
-            this.useNode(path)
+            const value = this.useNode(path)
 
             const Components = items.reduce<{ [key: string]: React.ReactElement }>((p, c) => {
                 p[c.key as KeyOf<Value>] = <c.Item key={c.key} path={[...path, c.key]} />
@@ -61,7 +62,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
             const Node = () => {
                 if (this.Wrapper) {
-                    return <this.Wrapper Components={Components as any} update={() => {}} />
+                    return <this.Wrapper value={value} Components={Components as any} update={() => { }} />
                 }
 
                 return Object.values(Components).map(c => c)

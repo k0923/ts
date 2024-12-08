@@ -11,7 +11,6 @@ export class CommonEditor<T = any> extends BaseEditor {
         return ({ path }) => {
             const handler = useCallback(
                 (v: any) => {
-                    console.log(path, v)
                     this.setValue(path, v)
                 },
                 [path.flat().join('.')]

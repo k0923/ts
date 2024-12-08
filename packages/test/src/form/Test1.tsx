@@ -1,4 +1,4 @@
-import { Button, Form, Grid, Input, InputNumber, Radio, Checkbox } from '@arco-design/web-react'
+import { Button, Form, Grid, Input, InputNumber, Radio, Checkbox, Divider } from '@arco-design/web-react'
 import {
     ArrayEditor,
     CommonEditor,
@@ -6,7 +6,7 @@ import {
     FuncEditor,
     ObjectEditor,
 } from '@k0923/form'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export interface Company {
     name: string
@@ -54,21 +54,21 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
 export type GameHobby = MobileGameHobby | ConsoleGameHobby
 
 const GameEditor = new ObjectEditor<GameHobby>({
-    valueHandler: (value, last) => {
-        // console.log('hit', value?.type, last?.type)
-        // if (value?.type === last?.type) {
-        //     return value
-        // }
-        if (value) {
-            console.log('hit2')
-            const { type } = value
-            return {
-                type,
-                data: undefined,
-            }
-        }
-        return value
-    },
+    // valueHandler: (value, last) => {
+    //     // console.log('hit', value?.type, last?.type)
+    //     // if (value?.type === last?.type) {
+    //     //     return value
+    //     // }
+    //     if (value) {
+    //         console.log('hit2')
+    //         const { type } = value
+    //         return {
+    //             type,
+    //             data: undefined,
+    //         }
+    //     }
+    //     return value
+    // },
     items: {
         type: new CommonEditor<'console' | 'mobile'>({
             Component: props => {
@@ -97,6 +97,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
 
 const UserEditor = new ObjectEditor<User>({
     valueHandler: (value, last) => {
+        console.log(value,last)
         if (value?.name === 'abc') {
             return {
                 ...value,
@@ -108,11 +109,13 @@ const UserEditor = new ObjectEditor<User>({
     items: {
         name: new CommonEditor<string>({
             Component: props => {
+               
                 return <Input {...props} />
             },
         }),
         age: new CommonEditor<number>({
             Component: props => {
+                
                 return <InputNumber {...props} />
             },
         }),
@@ -218,8 +221,11 @@ const UserEditor = new ObjectEditor<User>({
         // }),
     },
     Wrapper: props => {
+        const [count,setCount] = useState(0)
+        useEffect(()=>{setCount(count+1)},[props.value])
         return (
             <>
+                <Divider>{count}</Divider>
                 <Form.Item label="姓名">{props.Components.name}</Form.Item>
                 <Form.Item label="年龄">{props.Components.age}</Form.Item>
                 <Form.Item label="性别">{props.Components.gender}</Form.Item>
@@ -252,6 +258,10 @@ const CompanyEditor = new ObjectEditor<Company>({
         }),
         Employees: new ArrayEditor({
             Wrapper: ({ value, add, remove, Components }) => {
+                const [count, setCount] = useState(0)
+                useEffect(() => {
+                    setCount(count + 1)
+                }, [value])
                 if (!value || value.length == 0) {
                     return (
                         <Form.Item label=" ">
@@ -261,7 +271,7 @@ const CompanyEditor = new ObjectEditor<Company>({
                 }
                 return Components.map((item, index) => {
                     return (
-                        <Form.Item key={index} label={`员工${index}`}>
+                        <Form.Item key={index} label={`员工${index}_${count}`}>
                             <Grid.Row>
                                 <Grid.Col span={20}>{item.Comp}</Grid.Col>
                                 <Grid.Col span={4}>
