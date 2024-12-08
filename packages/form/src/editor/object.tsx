@@ -1,6 +1,5 @@
 import type { KeyOf } from '@/common/type'
 import { BaseEditor, type BaseEditorConfig, type Editor, type FormNode } from './editor'
-import type { IFormContext } from './context'
 
 export interface ObjectWrapperProps<Value = any> {
     Components: Partial<{ [key in keyof Value]: React.ReactElement }>
@@ -39,10 +38,6 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         return this.handler
     }
 
-    override setContext(context: IFormContext) {
-        super.setContext(context)
-        this.children.forEach(c => c.setContext(context))
-    }
 
     build(): FormNode {
         const items = Array.from(this.children).map(([k, n]) => {
@@ -56,7 +51,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
             const value = this.useNode(path)
 
             const Components = items.reduce<{ [key: string]: React.ReactElement }>((p, c) => {
-                p[c.key as KeyOf<Value>] = <c.Item key={c.key} path={[...path, c.key]} />
+                p[c.key as KeyOf<Value>] = <c.Item key={c.key} path={path.next(c.key)} />
                 return p
             }, {})
 

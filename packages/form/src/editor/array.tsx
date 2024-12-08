@@ -1,6 +1,6 @@
-import { Path, UnArray } from '@/common/type'
+import { UnArray } from '@/common/type'
 import { FormNode, BaseEditor, BaseEditorConfig, ValueHandler } from './editor'
-import { IFormContext } from './context'
+import { Path } from './context'
 
 export interface ArrayEditorWrapperProps<Value = any> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
@@ -34,10 +34,6 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
         this.child.setParent(this)
     }
 
-    override setContext(context: IFormContext): void {
-        super.setContext(context)
-        this.child.setContext(context)
-    }
 
     build(): FormNode {
         const changeHandler = (path: Path, data: any[]) => {
@@ -91,7 +87,7 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
                     return {
                         index: index,
                         value: itemV,
-                        Comp: <Child path={[...path, index]} />,
+                        Comp: <Child path={path.next(index)} />,
                     }
                 }) ?? []
 

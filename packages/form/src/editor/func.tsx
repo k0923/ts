@@ -18,22 +18,13 @@ export class FuncEditor<Value> extends BaseEditor<Value> {
         this.cache = new LRUCache<BaseEditor<Value>, FormNode>(cacheSize)
     }
 
-    setContext(context: IFormContext) {
-        super.setContext(context)
-        this.cache.keys().forEach(editor => {
-            editor.setContext(context)
-        })
-    }
-
     build(): FormNode {
         return ({ path }) => {
+            console.log('FuncEditor')
             const value = this.useNode(path)
             const editor = this.fn(value)
             let Node = this.cache.get(editor)
             if (!Node) {
-                if (this.context) {
-                    editor.setContext(this.context)
-                }
                 editor.setParent(this)
                 Node = editor.build()
                 this.cache.set(editor, Node)

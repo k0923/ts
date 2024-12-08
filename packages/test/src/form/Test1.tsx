@@ -5,6 +5,7 @@ import {
     DefaultFormContext,
     FuncEditor,
     ObjectEditor,
+    Path,
 } from '@k0923/form'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -83,12 +84,9 @@ const GameEditor = new ObjectEditor<GameHobby>({
         data: new FuncEditor<any>({
             cacheSize: 10,
             func: value => {
-                console.log(value)
                 if (Array.isArray(value)) {
-                    console.log('hit3')
                     return CommonGameEditor as any
                 }
-                console.log('hit4')
                 return ConsoleGameEditor as any
             },
         }),
@@ -97,7 +95,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
 
 const UserEditor = new ObjectEditor<User>({
     valueHandler: (value, last) => {
-        console.log(value,last)
+        console.log(value?.Hobbies?.[0]?.type,last?.Hobbies?.[0]?.type)
         if (value?.name === 'abc') {
             return {
                 ...value,
@@ -257,6 +255,13 @@ const CompanyEditor = new ObjectEditor<Company>({
             },
         }),
         Employees: new ArrayEditor({
+            valueHandler: (value, last) => {
+                // if(value.length > 1) {
+                //     const newV = value.map(v=>({...v,name:'abcd'})) 
+                //     return newV
+                // }
+                return value
+            },
             Wrapper: ({ value, add, remove, Components }) => {
                 const [count, setCount] = useState(0)
                 useEffect(() => {
@@ -289,7 +294,8 @@ const CompanyEditor = new ObjectEditor<Company>({
 })
 
 export default function () {
-    CompanyEditor.setContext(new DefaultFormContext({}))
+    const path = new Path([],new DefaultFormContext({}))
+   
     const Editor = useMemo(() => CompanyEditor.build(), [])
-    return <Editor path={[]} />
+    return <Editor path={path} />
 }

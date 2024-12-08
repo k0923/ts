@@ -13,7 +13,7 @@ export class CommonEditor<T = any> extends BaseEditor {
                 (v: any) => {
                     this.setValue(path, v)
                 },
-                [path.flat().join('.')]
+                [path.path.flat().join('.')]
             )
             const value = this.useNode(path)
             const Comp = this.Comp
