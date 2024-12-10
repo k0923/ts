@@ -28,7 +28,10 @@ function diff(oldObj: any, newObj: any): DiffPath[] {
         }
 
         // 处理对象或数组
-        const allKeys = new Set([...Object.keys(oldValue || {}), ...Object.keys(newValue || {})])
+        const allKeys = new Set([
+            ...Object.keys(oldValue || {}),
+            ...Object.keys(newValue || {}),
+        ])
 
         for (const key of allKeys) {
             // 转换数组索引为数字类型

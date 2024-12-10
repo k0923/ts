@@ -1,4 +1,13 @@
-import { Button, Form, Grid, Input, InputNumber, Radio, Checkbox, Divider } from '@arco-design/web-react'
+import {
+    Button,
+    Form,
+    Grid,
+    Input,
+    InputNumber,
+    Radio,
+    Checkbox,
+    Divider,
+} from '@arco-design/web-react'
 import {
     ArrayEditor,
     CommonEditor,
@@ -37,7 +46,9 @@ export interface ConsoleGameHobby {
 
 const CommonGameEditor = new CommonEditor<string[]>({
     Component: props => {
-        return <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
+        return (
+            <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
+        )
     },
 })
 
@@ -45,7 +56,12 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
     items: {
         platform: new CommonEditor<'xbox' | 'ps' | 'switch'>({
             Component: props => {
-                return <Radio.Group {...props} options={['xbox', 'ps', 'switch']} />
+                return (
+                    <Radio.Group
+                        {...props}
+                        options={['xbox', 'ps', 'switch']}
+                    />
+                )
             },
         }),
         games: CommonGameEditor,
@@ -55,21 +71,6 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
 export type GameHobby = MobileGameHobby | ConsoleGameHobby
 
 const GameEditor = new ObjectEditor<GameHobby>({
-    // valueHandler: (value, last) => {
-    //     // console.log('hit', value?.type, last?.type)
-    //     // if (value?.type === last?.type) {
-    //     //     return value
-    //     // }
-    //     if (value) {
-    //         console.log('hit2')
-    //         const { type } = value
-    //         return {
-    //             type,
-    //             data: undefined,
-    //         }
-    //     }
-    //     return value
-    // },
     items: {
         type: new CommonEditor<'console' | 'mobile'>({
             Component: props => {
@@ -83,7 +84,8 @@ const GameEditor = new ObjectEditor<GameHobby>({
         }),
         data: new FuncEditor<any>({
             cacheSize: 10,
-            func: value => {
+            func: (value, path) => {
+                console.log(path.parent?.value, path.parent?.path)
                 if (Array.isArray(value)) {
                     return CommonGameEditor as any
                 }
@@ -91,11 +93,19 @@ const GameEditor = new ObjectEditor<GameHobby>({
             },
         }),
     },
+    Wrapper: props => {
+        return (
+            <>
+                <Form.Item label="类型">{props.Components.type}</Form.Item>
+                <Form.Item label="数据">{props.Components.data}</Form.Item>
+            </>
+        )
+    },
 })
 
 const UserEditor = new ObjectEditor<User>({
     valueHandler: (value, last) => {
-        console.log(value?.Hobbies?.[0]?.type,last?.Hobbies?.[0]?.type)
+        console.log(value?.Hobbies?.[0]?.type, last?.Hobbies?.[0]?.type)
         if (value?.name === 'abc') {
             return {
                 ...value,
@@ -107,13 +117,11 @@ const UserEditor = new ObjectEditor<User>({
     items: {
         name: new CommonEditor<string>({
             Component: props => {
-               
                 return <Input {...props} />
             },
         }),
         age: new CommonEditor<number>({
             Component: props => {
-                
                 return <InputNumber {...props} />
             },
         }),
@@ -134,7 +142,9 @@ const UserEditor = new ObjectEditor<User>({
                 if (!value || value.length === 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>添加爱好</Button>
+                            <Button onClick={() => add(undefined, 0)}>
+                                添加爱好
+                            </Button>
                         </Form.Item>
                     )
                 }
@@ -144,7 +154,9 @@ const UserEditor = new ObjectEditor<User>({
                             return (
                                 <Form.Item key={index} label={`爱好${index}`}>
                                     <Grid.Row>
-                                        <Grid.Col span={10}>{item.Comp}</Grid.Col>
+                                        <Grid.Col span={10}>
+                                            {item.Comp}
+                                        </Grid.Col>
                                         <Grid.Col span={10}>
                                             <Button
                                                 onClick={() => {
@@ -219,8 +231,10 @@ const UserEditor = new ObjectEditor<User>({
         // }),
     },
     Wrapper: props => {
-        const [count,setCount] = useState(0)
-        useEffect(()=>{setCount(count+1)},[props.value])
+        const [count, setCount] = useState(0)
+        useEffect(() => {
+            setCount(count + 1)
+        }, [props.value])
         return (
             <>
                 <Divider>{count}</Divider>
@@ -257,7 +271,7 @@ const CompanyEditor = new ObjectEditor<Company>({
         Employees: new ArrayEditor({
             valueHandler: (value, last) => {
                 // if(value.length > 1) {
-                //     const newV = value.map(v=>({...v,name:'abcd'})) 
+                //     const newV = value.map(v=>({...v,name:'abcd'}))
                 //     return newV
                 // }
                 return value
@@ -270,7 +284,9 @@ const CompanyEditor = new ObjectEditor<Company>({
                 if (!value || value.length == 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>添加员工</Button>
+                            <Button onClick={() => add(undefined, 0)}>
+                                添加员工
+                            </Button>
                         </Form.Item>
                     )
                 }
@@ -280,8 +296,16 @@ const CompanyEditor = new ObjectEditor<Company>({
                             <Grid.Row>
                                 <Grid.Col span={20}>{item.Comp}</Grid.Col>
                                 <Grid.Col span={4}>
-                                    <Button onClick={() => remove(index)}>删除</Button>
-                                    <Button onClick={() => add(undefined, index + 1)}>添加</Button>
+                                    <Button onClick={() => remove(index)}>
+                                        删除
+                                    </Button>
+                                    <Button
+                                        onClick={() =>
+                                            add(undefined, index + 1)
+                                        }
+                                    >
+                                        添加
+                                    </Button>
                                 </Grid.Col>
                             </Grid.Row>
                         </Form.Item>
@@ -294,8 +318,8 @@ const CompanyEditor = new ObjectEditor<Company>({
 })
 
 export default function () {
-    const path = new Path([],new DefaultFormContext({}))
-   
-    const Editor = useMemo(() => CompanyEditor.build(), [])
+    const path = new Path([], new DefaultFormContext({}))
+
+    const Editor = useMemo(() => GameEditor.build(), [])
     return <Editor path={path} />
 }

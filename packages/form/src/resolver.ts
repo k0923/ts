@@ -11,4 +11,4 @@ export function DefaultResolver(config: NodeConfig) {
         return new ArrayEditorNode(config)
     }
     return new CommonEditorNode(config)
-} 
+}

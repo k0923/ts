@@ -1,4 +1,11 @@
-import { Button, Form, Grid, Input, InputNumber, Radio } from '@arco-design/web-react'
+import {
+    Button,
+    Form,
+    Grid,
+    Input,
+    InputNumber,
+    Radio,
+} from '@arco-design/web-react'
 import { BuildEditor, Editor } from '@k0923/form'
 
 import { useEffect, useState } from 'react'
@@ -65,7 +72,9 @@ export const userEditor: Editor<User> = {
                 if (!value || value.length === 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>添加爱好</Button>
+                            <Button onClick={() => add(undefined, 0)}>
+                                添加爱好
+                            </Button>
                         </Form.Item>
                     )
                 }
@@ -75,7 +84,9 @@ export const userEditor: Editor<User> = {
                             return (
                                 <Form.Item key={index} label={`爱好${index}`}>
                                     <Grid.Row>
-                                        <Grid.Col span={10}>{item.Comp}</Grid.Col>
+                                        <Grid.Col span={10}>
+                                            {item.Comp}
+                                        </Grid.Col>
                                         <Grid.Col span={10}>
                                             <Button
                                                 onClick={() => {
@@ -148,7 +159,9 @@ export const companyEditor: Editor<Company> = {
                 if (!value || value.length == 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>添加员工</Button>
+                            <Button onClick={() => add(undefined, 0)}>
+                                添加员工
+                            </Button>
                         </Form.Item>
                     )
                 }
@@ -158,8 +171,16 @@ export const companyEditor: Editor<Company> = {
                             <Grid.Row>
                                 <Grid.Col span={20}>{item.Comp}</Grid.Col>
                                 <Grid.Col span={4}>
-                                    <Button onClick={() => remove(index)}>删除</Button>
-                                    <Button onClick={() => add(undefined, index + 1)}>添加</Button>
+                                    <Button onClick={() => remove(index)}>
+                                        删除
+                                    </Button>
+                                    <Button
+                                        onClick={() =>
+                                            add(undefined, index + 1)
+                                        }
+                                    >
+                                        添加
+                                    </Button>
                                 </Grid.Col>
                             </Grid.Row>
                         </Form.Item>
@@ -195,7 +216,6 @@ export function People(props: any) {
 }
 
 export function TestForm() {
-    
     const [form] = Form.useForm()
 
     return (

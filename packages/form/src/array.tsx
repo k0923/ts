@@ -15,7 +15,12 @@ export class ArrayEditorNode extends BaseEditorNode {
             this.setValue(path, data)
         }
 
-        const add = (path: Path, currentValue: any[], newValue?: any, index?: number) => {
+        const add = (
+            path: Path,
+            currentValue: any[],
+            newValue?: any,
+            index?: number
+        ) => {
             let newData = undefined
             if (index === undefined) {
                 newData = [...(currentValue ?? []), newValue]
@@ -37,7 +42,12 @@ export class ArrayEditorNode extends BaseEditorNode {
             changeHandler(path, [...currentValue])
         }
 
-        const move = (path: Path, currentValue: any[], oldIndex: number, newIndex: number) => {
+        const move = (
+            path: Path,
+            currentValue: any[],
+            oldIndex: number,
+            newIndex: number
+        ) => {
             if (oldIndex === newIndex || !currentValue) {
                 return
             }
@@ -61,7 +71,11 @@ export class ArrayEditorNode extends BaseEditorNode {
         return ({ path }) => {
             const value = this.useNode(path) as any[]
 
-            const Components: { index: number; value?: any; Comp: React.ReactElement }[] =
+            const Components: {
+                index: number
+                value?: any
+                Comp: React.ReactElement
+            }[] =
                 (value as any[])?.map((itemV, index) => {
                     return {
                         index: index,

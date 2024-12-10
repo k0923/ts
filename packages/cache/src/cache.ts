@@ -9,7 +9,8 @@ export interface IO<Input, Output> {
 }
 
 export type IOKey<T> = T extends IO<infer Input, infer Output> ? Input : string
-export type IOValue<T> = T extends IO<infer Input, infer Output> ? Output : T | undefined
+export type IOValue<T> =
+    T extends IO<infer Input, infer Output> ? Output : T | undefined
 
 type Provider<T> = (
     last: CacheData<IOValue<T>> | null | undefined,
@@ -71,7 +72,9 @@ export function NewLocalStorage<T = any>(
     return {
         get: key => {
             try {
-                const result = localStorage.getItem(buildLocalStorageKey(scope, key))
+                const result = localStorage.getItem(
+                    buildLocalStorageKey(scope, key)
+                )
                 if (result) {
                     return Promise.resolve(JSON.parse(result))
                 }
@@ -83,7 +86,10 @@ export function NewLocalStorage<T = any>(
         },
         set: (key, value) => {
             try {
-                localStorage.setItem(buildLocalStorageKey(scope, key), JSON.stringify(value))
+                localStorage.setItem(
+                    buildLocalStorageKey(scope, key),
+                    JSON.stringify(value)
+                )
                 return Promise.resolve()
             } catch (err) {
                 console.error(err)
@@ -161,7 +167,10 @@ export function createCacheObj<T>(config: CacheHub<T>) {
     })
 }
 
-export function expireFetch<T>(fn: Provider<T>, milliseconds: number): Provider<T> {
+export function expireFetch<T>(
+    fn: Provider<T>,
+    milliseconds: number
+): Provider<T> {
     return (last, key) => {
         if (!last) {
             // 如果不存在直接返回原来的
@@ -190,7 +199,10 @@ function getPromise<T>(
     return result
 }
 
-export function createCache<T = any>(store: Store<T>, provider: Provider<T>): CacheApi<T> {
+export function createCache<T = any>(
+    store: Store<T>,
+    provider: Provider<T>
+): CacheApi<T> {
     const getMap = new Map<string, Promise<IOValue<T>>>()
     const deleteMap = new Map<string, Promise<void>>()
     const setMap = new Map<string, Promise<void>>()

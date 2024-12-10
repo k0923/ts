@@ -5,7 +5,11 @@ import { DefaultResolver } from './resolver'
 
 export interface BaseEditor<Value = any> {
     validator?: Validator<Value>
-    valueHandler?: (currentValue: Value, lastValue: Value, node?: Node) => Value | undefined
+    valueHandler?: (
+        currentValue: Value,
+        lastValue: Value,
+        node?: Node
+    ) => Value | undefined
 }
 
 export interface CommonEditor<Value = any> extends BaseEditor<Value> {
@@ -30,7 +34,11 @@ export interface ArrayEditorWrapperProps<Value = any> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
     remove: (index: number) => void
     move: (oldIndex: number, newIndex: number) => void
-    Components: { index: number; value?: UnArray<Value>; Comp: React.ReactElement }[]
+    Components: {
+        index: number
+        value?: UnArray<Value>
+        Comp: React.ReactElement
+    }[]
     value?: Value
 }
 
@@ -40,7 +48,10 @@ export interface ArrayEditor<Value = any> extends BaseEditor<Value> {
     Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
 
-export type Editor<Value = any> = CommonEditor<Value> | ObjectEditor<Value> | ArrayEditor<Value>
+export type Editor<Value = any> =
+    | CommonEditor<Value>
+    | ObjectEditor<Value>
+    | ArrayEditor<Value>
 
 export function BuildEditor(
     editor: Editor,

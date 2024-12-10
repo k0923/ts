@@ -1,7 +1,6 @@
-import type { Path } from "../common/type"
+import { PathSegment } from '@/editor/context'
 
-
-export function set(obj: any, p: Path, value: any): any {
+export function set(obj: any, p: PathSegment[], value: any): any {
     // 如果路径为 null、undefined 或空数组，直接返回 value
     if (!p || p.length === 0) {
         return value
@@ -36,8 +35,7 @@ export function set(obj: any, p: Path, value: any): any {
     return obj
 }
 
-
-export function get(obj: any, p: Path): any {
+export function get(obj: any, p: PathSegment[]): any {
     // 如果路径为 null、undefined 或空数组，直接返回 undefined
     if (!p || p.length === 0) {
         return obj

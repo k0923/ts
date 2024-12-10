@@ -1,4 +1,8 @@
-function set(obj: any, path: (string | number)[] | null | undefined, value: any): any {
+function set(
+    obj: any,
+    path: (string | number)[] | null | undefined,
+    value: any
+): any {
     // 如果路径为 null、undefined 或空数组，直接返回 value
     if (!path || path.length === 0) {
         return value

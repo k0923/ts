@@ -3,7 +3,11 @@ import { BaseEditor, type FormNode } from './editor'
 
 export class CommonEditor<T = any> extends BaseEditor {
     private Comp: FC<{ value: T; onChange: (v: T) => void }>
-    constructor({ Component }: { Component: FC<{ value: T; onChange: (v: T) => void }> }) {
+    constructor({
+        Component,
+    }: {
+        Component: FC<{ value: T; onChange: (v: T) => void }>
+    }) {
         super()
         this.Comp = Component
     }

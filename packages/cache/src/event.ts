@@ -35,7 +35,10 @@ export function CreateEventHub<Event>(): Events<Event> {
                         try {
                             cb(eventData)
                         } catch (error) {
-                            console.error(`Error in event handler for ${String(key)}:`, error)
+                            console.error(
+                                `Error in event handler for ${String(key)}:`,
+                                error
+                            )
                         }
                         once && s.delete(cb)
                     })

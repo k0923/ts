@@ -38,14 +38,21 @@ export class ObjectEditorNode extends BaseEditorNode {
         return ({ path }) => {
             this.useNode(path)
 
-            const Components = items.reduce<{ [key: string]: React.ReactElement }>((p, c) => {
+            const Components = items.reduce<{
+                [key: string]: React.ReactElement
+            }>((p, c) => {
                 p[c.key] = <c.Item key={c.key} path={[...path, c.key]} />
                 return p
             }, {})
 
             const Node = () => {
                 if (editor.Wrapper) {
-                    return <editor.Wrapper Components={Components} update={() => {}} />
+                    return (
+                        <editor.Wrapper
+                            Components={Components}
+                            update={() => {}}
+                        />
+                    )
                 }
 
                 return Object.values(Components).map(c => c)

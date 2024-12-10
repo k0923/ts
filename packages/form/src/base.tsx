@@ -88,7 +88,11 @@ export abstract class BaseEditorNode {
         if (this.editor.valueHandler) {
             v = this.editor.valueHandler(value, this.getValue(path))
         }
-        if (this.parent && this.parent.editor.valueHandler && this.buildParentValue) {
+        if (
+            this.parent &&
+            this.parent.editor.valueHandler &&
+            this.buildParentValue
+        ) {
             const parentPath = path.slice(0, -1)
             this.parent.setValue(
                 parentPath,

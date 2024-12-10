@@ -11,7 +11,10 @@ export class CommonEditorNode extends BaseEditorNode {
     build(FormItem?: FormItemWrapper): FormNode {
         const editor = this.editor as CommonEditor
         return ({ path }) => {
-            const handler = useCallback((v: any) => this.setValue(path, v), [path.flat().join('.')])
+            const handler = useCallback(
+                (v: any) => this.setValue(path, v),
+                [path.flat().join('.')]
+            )
             const value = this.useNode(path)
 
             if (!FormItem) {
