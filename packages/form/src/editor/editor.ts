@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { set } from '../utils/data'
-import { Path, PathSegment } from './context'
+import { Path } from './context'
 
 export type FormNode = React.FC<{ path: Path }>
 
@@ -14,7 +13,7 @@ export interface BaseEditorConfig<Value = any> {
 
 export interface Editor<Value = any> {
     build(): FormNode
-    parent(): Editor | null
+    readonly parent: Editor | null
     accept?: (valueFromChild: any, currentValue: Value) => Value | undefined
     valueHandler(): ValueHandler<Value> | undefined
 }
@@ -24,13 +23,15 @@ export abstract class BaseEditor<Value = any> implements Editor<Value> {
 
     protected hooks: Map<string, DataHandler<Value>> = new Map()
 
+    protected _reportHandler: ((value:any,childValue: any) => any) | undefined
+
     valueHandler(): ((value: Value, lastValue: Value) => Value) | undefined {
         return undefined
     }
 
     abstract build(): FormNode
 
-    parent(): BaseEditor | null {
+    get parent(): BaseEditor | null {
         return this._parent
     }
 
@@ -46,53 +47,32 @@ export abstract class BaseEditor<Value = any> implements Editor<Value> {
             value: value,
         }
         let currentEditor: BaseEditor = this
+        let currentValue = value
         while (true) {
             const lastValue = path.value
             const handler = currentEditor.valueHandler()
+
             if (handler) {
-                const v = handler(value, lastValue)
-                if (!Object.is(v, value)) {
+                const v = handler(currentValue, lastValue)
+                if (!Object.is(v, currentValue)) {
                     targetEditor.editor = currentEditor
                     targetEditor.path = path
                     targetEditor.value = v
                 }
+                currentValue = v
             }
 
-            const parent = currentEditor.parent()
-            if (!parent) break
-
-            const parentPath = path.parent
-            let parentValue = parentPath?.value
-
-            parentValue = this.updateParentValue(
-                parentValue,
-                path.last ?? [],
-                value
-            )
-            path = parentPath
-            value = parentValue
-            currentEditor = parent
+            if (!currentEditor.parent || !path.parent) {
+                break
+            }
+            const parentValue = path.parent.value
+            currentValue = path.buildParent(parentValue,currentValue)
+            path = path.parent
+            currentEditor = currentEditor.parent
         }
-
         targetEditor.editor.refresh(targetEditor.path, targetEditor.value)
-        console.log(targetEditor.path.path, targetEditor.path.value)
     }
 
-    private updateParentValue(
-        parentValue: any,
-        lastSegment: PathSegment | PathSegment[],
-        value: any
-    ): any {
-        if (typeof lastSegment === 'number') {
-            const newArray = Array.isArray(parentValue) ? [...parentValue] : []
-            newArray[lastSegment] = value
-            return newArray
-        } else if (typeof lastSegment === 'string') {
-            return { ...parentValue, [lastSegment]: value }
-        } else {
-            return set(parentValue, lastSegment, value)
-        }
-    }
 
     setParent(parent: BaseEditor): void {
         this._parent = parent

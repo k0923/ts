@@ -1,10 +1,5 @@
 import type { KeyOf } from '@/common/type'
-import {
-    BaseEditor,
-    type BaseEditorConfig,
-    type Editor,
-    type FormNode,
-} from './editor'
+import { BaseEditor, type BaseEditorConfig, type FormNode } from './editor'
 
 export interface ObjectWrapperProps<Value = any> {
     Components: Partial<{ [key in keyof Value]: React.ReactElement }>
@@ -15,7 +10,7 @@ export interface ObjectWrapperProps<Value = any> {
 export interface ObjectEditorConfig<Value = any>
     extends BaseEditorConfig<Value> {
     items: Partial<{
-        [key in keyof Value]: Editor<Value[key]>
+        [key in keyof Value]: BaseEditor<Value[key]>
     }>
     Wrapper?: React.FC<ObjectWrapperProps<Value>>
 }
@@ -55,12 +50,16 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
         return ({ path }) => {
             const value = this.useNode(path)
-
             const Components = items.reduce<{
                 [key: string]: React.ReactElement
             }>((p, c) => {
                 p[c.key as KeyOf<Value>] = (
-                    <c.Item key={c.key} path={path.next(c.key)} />
+                    <c.Item
+                        key={c.key}
+                        path={path.next(c.key, (parent, child) => {
+                            return { ...parent, [c.key]: child }
+                        })}
+                    />
                 )
                 return p
             }, {})

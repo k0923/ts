@@ -105,7 +105,11 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
                     return {
                         index: index,
                         value: itemV,
-                        Comp: <Child path={path.next(index)} />,
+                        Comp: <Child path={path.next(index,(p,c)=> { 
+                            const newP = [...p]
+                            newP[index] = c
+                            return newP
+                         })} />,
                     }
                 }) ?? []
 
@@ -118,32 +122,6 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
                     move={(o, n) => move(path, value, o, n)}
                 />
             )
-
-            // if (!FormItem) {
-            //     return (
-            //         <Wrapper
-            //             value={value}
-            //             Components={Components}
-            //             add={(v, i) => add(path, value, v, i)}
-            //             remove={i => remove(path, value, i)}
-            //             move={(o, n) => move(path, value, o, n)}
-            //         />
-            //     )
-            // }
-
-            // return (
-            //     <FormItem editor={this.editor} path={path} node={this}>
-            //         {
-            //             <editor.Wrapper
-            //                 value={value}
-            //                 Components={Components}
-            //                 add={(v, i) => add(path, value, v, i)}
-            //                 remove={i => remove(path, value, i)}
-            //                 move={(o, n) => move(path, value, o, n)}
-            //             />
-            //         }
-            //     </FormItem>
-            // )
         }
     }
 }

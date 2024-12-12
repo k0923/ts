@@ -71,6 +71,16 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
 export type GameHobby = MobileGameHobby | ConsoleGameHobby
 
 const GameEditor = new ObjectEditor<GameHobby>({
+    valueHandler:(value,last) => {
+        console.log(JSON.stringify(last),JSON.stringify(value))
+        if(value?.type !== last?.type) {
+            return {
+                ...value,
+                data:undefined
+            }
+        }
+        return value
+    },
     items: {
         type: new CommonEditor<'console' | 'mobile'>({
             Component: props => {
@@ -85,11 +95,14 @@ const GameEditor = new ObjectEditor<GameHobby>({
         data: new FuncEditor<any>({
             cacheSize: 10,
             func: (value, path) => {
-                console.log(path.parent?.value, path.parent?.path)
-                if (Array.isArray(value)) {
-                    return CommonGameEditor as any
+                const parentValue = path.parent?.value
+                if (parentValue?.type === 'console') {
+                    return ConsoleGameEditor
                 }
-                return ConsoleGameEditor as any
+                if (parentValue?.type === 'mobile') {
+                    return CommonGameEditor
+                }
+                return 
             },
         }),
     },
@@ -105,7 +118,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
 
 const UserEditor = new ObjectEditor<User>({
     valueHandler: (value, last) => {
-        console.log(value?.Hobbies?.[0]?.type, last?.Hobbies?.[0]?.type)
+        console.log(JSON.stringify(last),JSON.stringify(value))
         if (value?.name === 'abc') {
             return {
                 ...value,
@@ -320,6 +333,6 @@ const CompanyEditor = new ObjectEditor<Company>({
 export default function () {
     const path = new Path([], new DefaultFormContext({}))
 
-    const Editor = useMemo(() => GameEditor.build(), [])
+    const Editor = useMemo(() => CompanyEditor.build(), [])
     return <Editor path={path} />
 }

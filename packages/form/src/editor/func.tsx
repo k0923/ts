@@ -1,14 +1,15 @@
 import { BaseEditor, FormNode } from './editor'
 import { LRUCache } from '../utils/lru'
-import { IFormContext, Path } from './context'
+import { Path } from './context'
+import { useEffect, useState } from 'react'
 
 export interface FuncEditorConfig<Value> {
     cacheSize: number
-    func: (value: Value, path: Path) => BaseEditor<Value>
+    func: (value: Value, path: Path) => BaseEditor<Value> | undefined
 }
 
 export class FuncEditor<Value> extends BaseEditor<Value> {
-    private fn: (value: Value, path: Path) => BaseEditor<Value>
+    private fn: (value: Value, path: Path) => BaseEditor<Value> | undefined
 
     private cache: LRUCache<BaseEditor<Value>, FormNode>
 
@@ -18,34 +19,33 @@ export class FuncEditor<Value> extends BaseEditor<Value> {
         this.cache = new LRUCache<BaseEditor<Value>, FormNode>(cacheSize)
     }
 
-    processValue(value: Value, lastValue: Value): Value {
-        if (value) {
-            console.log(JSON.stringify(value))
-            if (Array.isArray(value)) {
-                return [...value] as Value
-            } else if (typeof value === 'object') {
-                return { ...value } as Value
-            }
-        }
-        return value
-    }
-
-    valueHandler(): ((value: Value, lastValue: Value) => Value) | undefined {
-        return this.processValue
-    }
-
     build(): FormNode {
         return ({ path }) => {
-            console.log(path.path)
-            const value = this.useNode(path)
-            const editor = this.fn(value, path)
-            let Node = this.cache.get(editor)
-            if (!Node) {
-                editor.setParent(this)
-                Node = editor.build()
-                this.cache.set(editor, Node)
-            }
-            return <Node path={path.next(undefined)} />
+            const [node, setNode] = useState<React.ReactNode>(null)
+
+            useEffect(() => {
+                const handler = () => {
+                    const value = path.value
+                    const editor = this.fn(value, path)
+                    if (!editor) {
+                        setNode(null)
+                        return
+                    }
+                    editor.setParent(this)
+                    let node = this.cache.get(editor)
+                    if (!node) {
+                        node = editor.build()
+                        this.cache.set(editor, node)
+                    }
+                    const Node = node
+                    setNode(<Node path={path.next([])} />)
+                }
+                path.context.registerHook(handler)
+                return () => {
+                    path.context.unregisterHook(handler)
+                }
+            }, [path.path.join('.')])
+            return node
         }
     }
 }
