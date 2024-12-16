@@ -8,7 +8,7 @@ export interface IFormContext {
     unregisterHook(fn: ContextDataHandler): void
 }
 
-type ContextDataHandler = (
+export type ContextDataHandler = (
     path: PathSegment[],
     value: any,
     totalValue: any

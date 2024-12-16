@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { sleep, userEditor } from './form/Form'
 
 import { Button, Form, Input } from '@arco-design/web-react'
-import Test from './form/Test1'
+import Test from './form/ArcoForm'
 
 function App() {
     const [count, setCount] = useState(0)

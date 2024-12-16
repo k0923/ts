@@ -7,21 +7,20 @@ import {
     Radio,
     Checkbox,
     Divider,
+    FormInstance,
 } from '@arco-design/web-react'
 import {
     ArrayEditor,
+    BaseEditor,
     CommonEditor,
-    DefaultFormContext,
+    ContextDataHandler,
     FuncEditor,
+    IFormContext,
     ObjectEditor,
     Path,
     PathSegment,
 } from '@k0923/react'
 import { useEffect, useMemo, useState } from 'react'
-
-function buildPath(path:Path,segment:PathSegment):string {
-    return [...path.path,segment].join('.')
-}
 
 export interface Company {
     name: string
@@ -61,8 +60,6 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
     items: {
         platform: new CommonEditor<'xbox' | 'ps' | 'switch'>({
             Component: props => {
-                const {path} = props
-                console.log(path.parent?.value,path.parent?.parent?.value,path.parent?.parent?.parent?.value)
                 return (
                     <Radio.Group
                         {...props}
@@ -78,12 +75,12 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
 export type GameHobby = MobileGameHobby | ConsoleGameHobby
 
 const GameEditor = new ObjectEditor<GameHobby>({
-    valueHandler:(value,last) => {
-        console.log(JSON.stringify(last),JSON.stringify(value))
-        if(value?.type !== last?.type) {
+    valueHandler: (value, last) => {
+        console.log(JSON.stringify(last), JSON.stringify(value))
+        if (value?.type !== last?.type) {
             return {
                 ...value,
-                data:undefined
+                data: undefined,
             }
         }
         return value
@@ -109,17 +106,30 @@ const GameEditor = new ObjectEditor<GameHobby>({
                 if (parentValue?.type === 'mobile') {
                     return CommonGameEditor
                 }
-                return 
+                return
             },
         }),
     },
     Wrapper: props => {
-        console.log(props)
+        const { path } = props
         return (
             <>
-                <Form.Item label="类型">{props.Components.type}</Form.Item>
+                <Form.Item
+                    field={[...path.path, 'type'].join('.')}
+                    label="类型"
+                    required
+                    rules={[{ required: true }]}
+                >
+                    {props.Components.type}
+                </Form.Item>
                 <Form.Item label="数据">{props.Components.data}</Form.Item>
-                <Button onClick={()=>{props.update(undefined as any)}}>Reset</Button>
+                <Button
+                    onClick={() => {
+                        props.update(undefined as any)
+                    }}
+                >
+                    Reset
+                </Button>
             </>
         )
     },
@@ -206,15 +216,32 @@ const UserEditor = new ObjectEditor<User>({
     },
     Wrapper: props => {
         const [count, setCount] = useState(0)
-        
+        const { path } = props
         useEffect(() => {
             setCount(count + 1)
         }, [props.value])
         return (
             <>
                 <Divider>{count}</Divider>
-                <Form.Item label="姓名">{props.Components.name}</Form.Item>
-                <Form.Item label="年龄">{props.Components.age}</Form.Item>
+                <Form.Item
+                    required
+                    validateTrigger="onChange"
+                    rules={[
+                        {
+                            validator: (v, cb) => {
+                                console.log(v)
+                            },
+                        },
+                        {
+                            required:true,
+                        }
+                    ]}
+                    field={[...path.path, 'name'].join('.')}
+                    label="姓名"
+                >
+                    {props.Components.name}
+                </Form.Item>
+                <Form.Item label="年龄" required>{props.Components.age}</Form.Item>
                 <Form.Item label="性别">{props.Components.gender}</Form.Item>
                 {props.Components.Hobbies}
             </>
@@ -224,9 +251,10 @@ const UserEditor = new ObjectEditor<User>({
 
 const CompanyEditor = new ObjectEditor<Company>({
     Wrapper: props => {
+        const {path} = props
         return (
             <>
-                <Form.Item label="姓名">{props.Components.name}</Form.Item>
+                <Form.Item field={[...path.path,'name'].join('.')} rules={[{required:true}]} label="名称">{props.Components.name}</Form.Item>
                 <Form.Item label="地址">{props.Components.address}</Form.Item>
                 {props.Components.Employees}
             </>
@@ -292,9 +320,48 @@ const CompanyEditor = new ObjectEditor<Company>({
     },
 })
 
-export default function () {
-    const path = new Path([], new DefaultFormContext({}))
+export class AcroFormContext implements IFormContext {
+    private hooks: Set<ContextDataHandler> = new Set()
 
-    const Editor = useMemo(() => CompanyEditor.build(), [])
+    constructor(private form: FormInstance) {}
+    registerHook(fn: ContextDataHandler) {
+        this.hooks.add(fn)
+    }
+    unregisterHook(fn: ContextDataHandler) {
+        this.hooks.delete(fn)
+    }
+    setValue(path: PathSegment[], value: any) {
+        this.form.setFieldValue(path.join('.'), value)
+        this.hooks.forEach(fn => fn(path, value, this.form.getFieldsValue()))
+    }
+    getValue(path: PathSegment[]) {
+        return this.form.getFieldValue(path.join('.'))
+    }
+}
+
+export function ArcoFormBody(props: { path: Path; editor: BaseEditor }) {
+    const Editor = useMemo(() => props.editor.build(), [])
+    const { path } = props
     return <Editor path={path} />
+}
+
+export default function () {
+    const [form] = Form.useForm()
+    const path = new Path([], new AcroFormContext(form))
+    return (
+        <Form
+            scrollToFirstError
+            form={form}
+            onSubmit={v => {
+                console.log(form.getFieldsValue())
+                console.log(v)
+            }}
+            onValuesChange={(v, vs) => {
+                console.log(v)
+            }}
+        >
+            <ArcoFormBody path={path} editor={CompanyEditor} />
+            <Button htmlType="submit">提交</Button>
+        </Form>
+    )
 }
