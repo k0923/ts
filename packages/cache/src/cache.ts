@@ -61,6 +61,72 @@ export function NewMapStore<T = any>(
     }
 }
 
+<<<<<<< HEAD
+=======
+function buildLocalStorageKey(scope: string, key: string) {
+    return `${scope}.${key}`
+}
+
+export function NewLocalStorage<T = any>(
+    scope: string,
+    convert: (key: IOKey<T>) => string
+): Store<T> {
+    return {
+        get: key => {
+            try {
+                const result = localStorage.getItem(
+                    buildLocalStorageKey(scope, key)
+                )
+                if (result) {
+                    return Promise.resolve(JSON.parse(result))
+                }
+                return Promise.resolve(null)
+            } catch (err) {
+                console.error(err)
+                return Promise.reject(err)
+            }
+        },
+        set: (key, value) => {
+            try {
+                localStorage.setItem(
+                    buildLocalStorageKey(scope, key),
+                    JSON.stringify(value)
+                )
+                return Promise.resolve()
+            } catch (err) {
+                console.error(err)
+                return Promise.reject(err)
+            }
+        },
+        delete: key => {
+            try {
+                localStorage.removeItem(buildLocalStorageKey(scope, key))
+                return Promise.resolve()
+            } catch (err) {
+                console.error(err)
+                return Promise.reject(err)
+            }
+        },
+        clear: () => {
+            if (scope.length == 0) {
+                return Promise.resolve()
+            }
+            const keyArr: string[] = []
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i) //获取本地存储的Key
+                if (key?.startsWith(scope)) {
+                    keyArr.push(key)
+                }
+            }
+            keyArr.forEach(key => {
+                localStorage.removeItem(key)
+            })
+            return Promise.resolve()
+        },
+        convert: key => convert(key),
+    }
+}
+>>>>>>> 27b22a908857167b46737fdc41c192961335c39d
 
 export interface CacheApi<T> {
     get: (key: IOKey<T>) => Promise<IOValue<T>>

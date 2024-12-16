@@ -81,7 +81,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
                 data:undefined
             }
         }
-        return {...value}
+        return value
     },
     items: {
         type: new CommonEditor<'console' | 'mobile'>({
