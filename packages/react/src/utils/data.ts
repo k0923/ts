@@ -1,8 +1,12 @@
-function set(obj: any, path: (string | number)[] | null | undefined, value: any): any {
+import { PathSegment } from '@/editor/context'
+
+export function set(obj: any, p: PathSegment[], value: any): any {
     // 如果路径为 null、undefined 或空数组，直接返回 value
-    if (!path || path.length === 0) {
+    if (!p || p.length === 0) {
         return value
     }
+
+    const path = p.flat()
 
     // 如果对象为 null 或 undefined，或者类型与路径不匹配，根据第一个路径类型创建新的容器
     if (
@@ -29,4 +33,29 @@ function set(obj: any, path: (string | number)[] | null | undefined, value: any)
         }
     })
     return obj
+}
+
+export function get(obj: any, p: PathSegment[]): any {
+    // 如果路径为 null、undefined 或空数组，直接返回 undefined
+    if (!p || p.length === 0) {
+        return obj
+    }
+
+    const path = p.flat()
+
+    // 如果对象为 null 或 undefined，直接返回 undefined
+    if (obj == null) {
+        return undefined
+    }
+
+    let result = obj
+    // 遍历路径
+    for (const key of path) {
+        if (result == null) {
+            return undefined
+        }
+        result = result[key]
+    }
+
+    return result
 }

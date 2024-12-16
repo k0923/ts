@@ -1,15 +1,18 @@
 import type { KeyOf } from '@/common/type'
-import { BaseEditor, type BaseEditorConfig, type Editor, type FormNode } from './editor'
+import { BaseEditor, type BaseEditorConfig, type FormNode } from './editor'
+import { Path } from './context'
 
 export interface ObjectWrapperProps<Value = any> {
     Components: Partial<{ [key in keyof Value]: React.ReactElement }>
     update: (newValue: Value) => void
     value: Value
+    path: Path
 }
 
-export interface ObjectEditorConfig<Value = any> extends BaseEditorConfig<Value> {
+export interface ObjectEditorConfig<Value = any>
+    extends BaseEditorConfig<Value> {
     items: Partial<{
-        [key in keyof Value]: Editor<Value[key]>
+        [key in keyof Value]: BaseEditor<Value[key]>
     }>
     Wrapper?: React.FC<ObjectWrapperProps<Value>>
 }
@@ -19,7 +22,8 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
     private Wrapper?: React.FC<ObjectWrapperProps<Value>>
 
-    private handler: ((value: Value, last: Value) => Value) | undefined = undefined
+    private handler: ((value: Value, last: Value) => Value) | undefined =
+        undefined
 
     constructor({ items, Wrapper, valueHandler }: ObjectEditorConfig<Value>) {
         super()
@@ -38,7 +42,6 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         return this.handler
     }
 
-
     build(): FormNode {
         const items = Array.from(this.children).map(([k, n]) => {
             return {
@@ -49,15 +52,32 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
         return ({ path }) => {
             const value = this.useNode(path)
-
-            const Components = items.reduce<{ [key: string]: React.ReactElement }>((p, c) => {
-                p[c.key as KeyOf<Value>] = <c.Item key={c.key} path={path.next(c.key)} />
+            const Components = items.reduce<{
+                [key: string]: React.ReactElement
+            }>((p, c) => {
+                p[c.key as KeyOf<Value>] = (
+                    <c.Item
+                        key={c.key}
+                        path={path.next(c.key, (parent, child) => {
+                            return { ...parent, [c.key]: child }
+                        })}
+                    />
+                )
                 return p
             }, {})
 
             const Node = () => {
                 if (this.Wrapper) {
-                    return <this.Wrapper value={value} Components={Components as any} update={() => { }} />
+                    return (
+                        <this.Wrapper
+                            path={path}
+                            value={value}
+                            Components={Components as any}
+                            update={(v: Value) => {
+                                this.setValue(path, v)
+                            }}
+                        />
+                    )
                 }
 
                 return Object.values(Components).map(c => c)

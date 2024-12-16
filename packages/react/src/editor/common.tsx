@@ -1,9 +1,16 @@
 import { useCallback, type FC } from 'react'
 import { BaseEditor, type FormNode } from './editor'
+import { Path } from './context'
+
+export interface CommonEditorProps<T> {
+    value: T
+    onChange: (v: T) => void
+    path: Path
+}
 
 export class CommonEditor<T = any> extends BaseEditor {
-    private Comp: FC<{ value: T; onChange: (v: T) => void }>
-    constructor({ Component }: { Component: FC<{ value: T; onChange: (v: T) => void }> }) {
+    private Comp: FC<CommonEditorProps<T>>
+    constructor({ Component }: { Component: FC<CommonEditorProps<T>> }) {
         super()
         this.Comp = Component
     }
@@ -17,7 +24,7 @@ export class CommonEditor<T = any> extends BaseEditor {
             )
             const value = this.useNode(path)
             const Comp = this.Comp
-            return <Comp value={value} onChange={handler} />
+            return <Comp value={value} onChange={handler} path={path} />
         }
     }
 }

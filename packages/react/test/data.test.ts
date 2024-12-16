@@ -1,6 +1,5 @@
 import { get } from '../src/utils/data'
-import { describe, expect, test, beforeAll } from "bun:test";
-
+import { describe, expect, test, beforeAll } from 'bun:test'
 
 describe('get function', () => {
     test('should return undefined for null/undefined paths', () => {
@@ -40,8 +39,8 @@ describe('get function', () => {
         const complex = {
             users: [
                 { id: 1, name: 'John' },
-                { id: 2, name: 'Jane' }
-            ]
+                { id: 2, name: 'Jane' },
+            ],
         }
         expect(get(complex, ['users', 0, 'name'])).toBe('John')
         expect(get(complex, ['users', 1, 'id'])).toBe(2)

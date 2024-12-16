@@ -1,4 +1,10 @@
-import { Button, Form, Input, InputNumber, RulesProps } from '@arco-design/web-react'
+import {
+    Button,
+    Form,
+    Input,
+    InputNumber,
+    RulesProps,
+} from '@arco-design/web-react'
 
 import { Editor } from '@k0923/form'
 import { TreeNode } from '@k0923/form/src/tree'

@@ -6,11 +6,17 @@ export interface ArrayEditorWrapperProps<Value = any> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
     remove: (index: number) => void
     move: (oldIndex: number, newIndex: number) => void
-    Components: { index: number; value?: UnArray<Value>; Comp: React.ReactElement }[]
+    Components: {
+        index: number
+        value?: UnArray<Value>
+        Comp: React.ReactElement
+    }[]
     value?: Value
+    path: Path
 }
 
-export interface ArrayEditorConfig<Value = any> extends BaseEditorConfig<Value> {
+export interface ArrayEditorConfig<Value = any>
+    extends BaseEditorConfig<Value> {
     editor: BaseEditor<UnArray<Value>>
     Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
@@ -34,13 +40,17 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
         this.child.setParent(this)
     }
 
-
     build(): FormNode {
         const changeHandler = (path: Path, data: any[]) => {
             this.setValue(path, data as any)
         }
 
-        const add = (path: Path, currentValue: any[], newValue?: any, index?: number) => {
+        const add = (
+            path: Path,
+            currentValue: any[],
+            newValue?: any,
+            index?: number
+        ) => {
             let newData = undefined
             if (index === undefined) {
                 newData = [...(currentValue ?? []), newValue]
@@ -62,7 +72,12 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             changeHandler(path, [...currentValue])
         }
 
-        const move = (path: Path, currentValue: any[], oldIndex: number, newIndex: number) => {
+        const move = (
+            path: Path,
+            currentValue: any[],
+            oldIndex: number,
+            newIndex: number
+        ) => {
             if (oldIndex === newIndex || !currentValue) {
                 return
             }
@@ -82,17 +97,30 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
         return ({ path }) => {
             const value = this.useNode(path)
 
-            const Components: { index: number; value?: any; Comp: React.ReactElement }[] =
+            const Components: {
+                index: number
+                value?: any
+                Comp: React.ReactElement
+            }[] =
                 (value as any[])?.map((itemV, index) => {
                     return {
                         index: index,
                         value: itemV,
-                        Comp: <Child path={path.next(index)} />,
+                        Comp: (
+                            <Child
+                                path={path.next(index, (p, c) => {
+                                    const newP = [...p]
+                                    newP[index] = c
+                                    return newP
+                                })}
+                            />
+                        ),
                     }
                 }) ?? []
 
             return (
                 <Wrapper
+                    path={path}
                     value={value}
                     Components={Components}
                     add={(v, i) => add(path, value, v, i)}
@@ -100,32 +128,6 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
                     move={(o, n) => move(path, value, o, n)}
                 />
             )
-
-            // if (!FormItem) {
-            //     return (
-            //         <Wrapper
-            //             value={value}
-            //             Components={Components}
-            //             add={(v, i) => add(path, value, v, i)}
-            //             remove={i => remove(path, value, i)}
-            //             move={(o, n) => move(path, value, o, n)}
-            //         />
-            //     )
-            // }
-
-            // return (
-            //     <FormItem editor={this.editor} path={path} node={this}>
-            //         {
-            //             <editor.Wrapper
-            //                 value={value}
-            //                 Components={Components}
-            //                 add={(v, i) => add(path, value, v, i)}
-            //                 remove={i => remove(path, value, i)}
-            //                 move={(o, n) => move(path, value, o, n)}
-            //             />
-            //         }
-            //     </FormItem>
-            // )
         }
     }
 }

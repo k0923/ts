@@ -9,7 +9,8 @@ export interface IO<Input, Output> {
 }
 
 export type IOKey<T> = T extends IO<infer Input, infer Output> ? Input : string
-export type IOValue<T> = T extends IO<infer Input, infer Output> ? Output : T | undefined
+export type IOValue<T> =
+    T extends IO<infer Input, infer Output> ? Output : T | undefined
 
 type Provider<T> = (
     last: CacheData<IOValue<T>> | null | undefined,
@@ -60,64 +61,6 @@ export function NewMapStore<T = any>(
     }
 }
 
-function buildLocalStorageKey(scope: string, key: string) {
-    return `${scope}.${key}`
-}
-
-export function NewLocalStorage<T = any>(
-    scope: string,
-    convert: (key: IOKey<T>) => string
-): Store<T> {
-    return {
-        get: key => {
-            try {
-                const result = localStorage.getItem(buildLocalStorageKey(scope, key))
-                if (result) {
-                    return Promise.resolve(JSON.parse(result))
-                }
-                return Promise.resolve(null)
-            } catch (err) {
-                console.error(err)
-                return Promise.reject(err)
-            }
-        },
-        set: (key, value) => {
-            try {
-                localStorage.setItem(buildLocalStorageKey(scope, key), JSON.stringify(value))
-                return Promise.resolve()
-            } catch (err) {
-                console.error(err)
-                return Promise.reject(err)
-            }
-        },
-        delete: key => {
-            try {
-                localStorage.removeItem(buildLocalStorageKey(scope, key))
-                return Promise.resolve()
-            } catch (err) {
-                console.error(err)
-                return Promise.reject(err)
-            }
-        },
-        clear: () => {
-            if (scope.length == 0) {
-                return Promise.resolve()
-            }
-            const keyArr: string[] = []
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i) //获取本地存储的Key
-                if (key?.startsWith(scope)) {
-                    keyArr.push(key)
-                }
-            }
-            keyArr.forEach(key => {
-                localStorage.removeItem(key)
-            })
-            return Promise.resolve()
-        },
-        convert: key => convert(key),
-    }
-}
 
 export interface CacheApi<T> {
     get: (key: IOKey<T>) => Promise<IOValue<T>>
@@ -161,7 +104,10 @@ export function createCacheObj<T>(config: CacheHub<T>) {
     })
 }
 
-export function expireFetch<T>(fn: Provider<T>, milliseconds: number): Provider<T> {
+export function expireFetch<T>(
+    fn: Provider<T>,
+    milliseconds: number
+): Provider<T> {
     return (last, key) => {
         if (!last) {
             // 如果不存在直接返回原来的
@@ -190,7 +136,10 @@ function getPromise<T>(
     return result
 }
 
-export function createCache<T = any>(store: Store<T>, provider: Provider<T>): CacheApi<T> {
+export function createCache<T = any>(
+    store: Store<T>,
+    provider: Provider<T>
+): CacheApi<T> {
     const getMap = new Map<string, Promise<IOValue<T>>>()
     const deleteMap = new Map<string, Promise<void>>()
     const setMap = new Map<string, Promise<void>>()
