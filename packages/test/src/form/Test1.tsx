@@ -243,7 +243,7 @@ const CompanyEditor = new ObjectEditor<Company>({
                 return <Input {...props} />
             },
         }),
-        Employees: new ArrayEditor({
+        Employees: new ArrayEditor<User[]>({
             valueHandler: (value, last) => {
                 // if(value.length > 1) {
                 //     const newV = value.map(v=>({...v,name:'abcd'}))

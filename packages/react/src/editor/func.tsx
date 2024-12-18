@@ -20,31 +20,29 @@ export class FuncEditor<Value> extends BaseEditor<Value> {
     }
 
     build(): FormNode {
-        return ({ path }) => {
-            const [node, setNode] = useState<React.ReactNode>(null)
+        const getNode = (path: Path) => {
+            const value = path.value
+            const editor = this.fn(value, path)
+            if (!editor) {
+                return null
+            }
+            if (this.parent) {
+                editor.setParent(this.parent)
+            }
+            let node = this.cache.get(editor)
+            if (!node) {
+                node = editor.build()
+                this.cache.set(editor, node)
+            }
+            const Node = node
+            return <Node path={path} />
+        }
 
+        return ({ path }) => {
+            const [node, setNode] = useState<React.ReactNode>(getNode(path))
             useEffect(() => {
                 const handler = () => {
-                    const value = path.value
-                    const editor = this.fn(value, path)
-                    if (!editor) {
-                        setNode(null)
-                        return
-                    }
-                    if (this.parent) {
-                        editor.setParent(this.parent)
-                    }
-                    let node = this.cache.get(editor)
-                    if (!node) {
-                        node = editor.build()
-                        this.cache.set(editor, node)
-                    }
-                    const Node = node
-                    setNode(
-                        <Node
-                            path={path}
-                        />
-                    )
+                    setNode(getNode(path))
                 }
                 path.context.registerHook(handler)
                 return () => {

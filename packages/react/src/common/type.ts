@@ -1,3 +1,4 @@
-export type UnArray<T> = T extends Array<infer U> ? U : T
-
-export type KeyOf<T> = Extract<keyof T, string>
+export interface ReactiveProps<T> {
+    value: T
+    onChange: (value: T) => void
+}

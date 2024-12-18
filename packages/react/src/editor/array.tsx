@@ -1,6 +1,7 @@
-import { UnArray } from '@/common/type'
 import { FormNode, BaseEditor, BaseEditorConfig, ValueHandler } from './editor'
 import { Path } from './context'
+
+export type UnArray<T> = T extends Array<infer U> ? U : T
 
 export interface ArrayEditorWrapperProps<Value = any> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
@@ -8,15 +9,14 @@ export interface ArrayEditorWrapperProps<Value = any> {
     move: (oldIndex: number, newIndex: number) => void
     Components: {
         index: number
-        value?: UnArray<Value>
+        value: UnArray<Value>
         Comp: React.ReactElement
     }[]
     value?: Value
     path: Path
 }
 
-export interface ArrayEditorConfig<Value = any>
-    extends BaseEditorConfig<Value> {
+export interface ArrayEditorConfig<Value = any> extends BaseEditorConfig<Value> {
     editor: BaseEditor<UnArray<Value>>
     Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
@@ -28,8 +28,12 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
     private Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 
-    valueHandler(): ValueHandler<Value> | undefined {
-        return this.handler
+    processValue(value: Value, lastValue: Value): Value {
+        if (this.handler) {
+            return this.handler(value, lastValue)
+        } else {
+            return super.processValue(value, lastValue)
+        }
     }
 
     constructor({ editor, valueHandler, Wrapper }: ArrayEditorConfig<Value>) {
@@ -45,12 +49,7 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             this.setValue(path, data as any)
         }
 
-        const add = (
-            path: Path,
-            currentValue: any[],
-            newValue?: any,
-            index?: number
-        ) => {
+        const add = (path: Path, currentValue: any[], newValue?: any, index?: number) => {
             let newData = undefined
             if (index === undefined) {
                 newData = [...(currentValue ?? []), newValue]
@@ -72,12 +71,7 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             changeHandler(path, [...currentValue])
         }
 
-        const move = (
-            path: Path,
-            currentValue: any[],
-            oldIndex: number,
-            newIndex: number
-        ) => {
+        const move = (path: Path, currentValue: any[], oldIndex: number, newIndex: number) => {
             if (oldIndex === newIndex || !currentValue) {
                 return
             }
@@ -99,10 +93,10 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
             const Components: {
                 index: number
-                value?: any
+                value: UnArray<Value>
                 Comp: React.ReactElement
             }[] =
-                (value as any[])?.map((itemV, index) => {
+                (value as UnArray<Value>[])?.map((itemV, index) => {
                     return {
                         index: index,
                         value: itemV,

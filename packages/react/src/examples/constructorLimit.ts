@@ -1,54 +1,64 @@
 // Example of limiting constructor access in TypeScript
 
+import { ArrayEditor, CommonEditor } from '@/editor'
+
 // Interface with private constructor pattern
 interface Singleton {
-    getValue(): string;
+    getValue(): string
 }
 
 // Implementation with private constructor
 class SingletonImpl implements Singleton {
-    private static instance: SingletonImpl;
+    private static instance: SingletonImpl
     private constructor() {} // Private constructor
 
     public static getInstance(): Singleton {
         if (!SingletonImpl.instance) {
-            SingletonImpl.instance = new SingletonImpl();
+            SingletonImpl.instance = new SingletonImpl()
         }
-        return SingletonImpl.instance;
+        return SingletonImpl.instance
     }
 
     getValue(): string {
-        return "I am a singleton!";
+        return 'I am a singleton!'
     }
 }
 
 // Example with protected constructor
 interface BaseInterface {
-    getData(): number;
+    getData(): number
 }
 
 abstract class BaseClass implements BaseInterface {
     protected constructor() {} // Protected constructor
-    abstract getData(): number;
+    abstract getData(): number
 }
 
 class DerivedClass extends BaseClass {
     constructor() {
-        super();
+        super()
     }
 
     getData(): number {
-        return 42;
+        return 42
     }
 }
 
 // Usage examples
-const singleton = SingletonImpl.getInstance();
-console.log(singleton.getValue()); // "I am a singleton!"
+const singleton = SingletonImpl.getInstance()
+console.log(singleton.getValue()) // "I am a singleton!"
 
-const derived = new DerivedClass();
-console.log(derived.getData()); // 42
+const derived = new DerivedClass()
+console.log(derived.getData()) // 42
 
 // This would cause a compile error:
 // const base = new BaseClass(); // Error: Cannot create an instance of an abstract class
 // const singletonDirect = new SingletonImpl(); // Error: Constructor is private
+const A = new ArrayEditor<string[]>({
+    editor: new CommonEditor<string>({
+        Component: props => null,
+    }),
+    Wrapper: ({add}) => {
+        return null
+    }
+})

@@ -11,21 +11,15 @@ export interface BaseEditorConfig<Value = any> {
     valueHandler?: ValueHandler<Value>
 }
 
-export interface Editor<Value = any> {
-    build(): FormNode
-    readonly parent: Editor | null
-    valueHandler(): ValueHandler<Value> | undefined
-}
-
-export abstract class BaseEditor<Value = any> implements Editor<Value> {
+export abstract class BaseEditor<out Value = any> {
     protected _parent: BaseEditor | null = null
 
-    protected hooks: Map<string, DataHandler<Value>> = new Map()
+    protected hooks: Map<string, DataHandler<any>> = new Map()
 
-    protected _reportHandler: ((value:any,childValue: any) => any) | undefined
+    protected _reportHandler: ((value: any, childValue: any) => any) | undefined
 
-    valueHandler(): ((value: Value, lastValue: Value) => Value) | undefined {
-        return undefined
+    processValue(value: Value, lastValue: Value): Value {
+        return value
     }
 
     abstract build(): FormNode
@@ -49,30 +43,25 @@ export abstract class BaseEditor<Value = any> implements Editor<Value> {
         let currentValue = value
         while (true) {
             const lastValue = path.value
-            const handler = currentEditor.valueHandler()
-
-            if (handler) {
-                const v = handler(currentValue, lastValue)
-                if (!Object.is(v, currentValue)) {
-                    targetEditor.editor = currentEditor
-                    targetEditor.path = path
-                    targetEditor.value = v
-                }
-                currentValue = v
+            const v = currentEditor.processValue(currentValue, lastValue)
+            if (!Object.is(v, currentValue)) {
+                targetEditor.editor = currentEditor
+                targetEditor.path = path
+                targetEditor.value = v
             }
+            currentValue = v
 
             if (!currentEditor.parent || !path.parent) {
                 break
             }
             const parentValue = path.parent.value
-            currentValue = path.buildParent(parentValue,currentValue)
+            currentValue = path.buildParent(parentValue, currentValue)
             path = path.parent
             currentEditor = currentEditor.parent
         }
-        
+
         targetEditor.editor.refresh(targetEditor.path, targetEditor.value)
     }
-
 
     setParent(parent: BaseEditor): void {
         this._parent = parent

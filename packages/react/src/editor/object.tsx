@@ -9,8 +9,7 @@ export interface ObjectWrapperProps<Value = any> {
     path: Path
 }
 
-export interface ObjectEditorConfig<Value = any>
-    extends BaseEditorConfig<Value> {
+export interface ObjectEditorConfig<Value = any> extends BaseEditorConfig<Value> {
     items: Partial<{
         [key in keyof Value]: BaseEditor<Value[key]>
     }>
@@ -22,8 +21,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
     private Wrapper?: React.FC<ObjectWrapperProps<Value>>
 
-    private handler: ((value: Value, last: Value) => Value) | undefined =
-        undefined
+    private handler: ((value: Value, last: Value) => Value) | undefined = undefined
 
     constructor({ items, Wrapper, valueHandler }: ObjectEditorConfig<Value>) {
         super()
@@ -38,9 +36,13 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         })
     }
 
-    valueHandler(): ((value: Value, lastValue: Value) => Value) | undefined {
-        return this.handler
+    processValue(value: Value, lastValue: Value): Value {
+        if (this.handler) {
+            return this.handler(value, lastValue)
+        }
+        return super.processValue(value, lastValue)
     }
+
 
     build(): FormNode {
         const items = Array.from(this.children).map(([k, n]) => {
