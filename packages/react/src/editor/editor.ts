@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Path } from './context'
 
-export type FormNode = React.FC<{ path: Path }>
+export type FormNode = React.FC<{path:Path}>
 
 export type DataHandler<T = any> = (v: T) => void
 

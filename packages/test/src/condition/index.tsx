@@ -9,6 +9,7 @@ import {
 } from '@k0923/react'
 import { useEffect, useMemo, useState } from 'react'
 import './index.css'
+import React from 'react'
 
 export interface ReactiveProps<T> {
     value: T
@@ -128,7 +129,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                     return {
                         type: value.type,
                         data: value.data.filter(it => {
-                            if(!it) {
+                            if (!it) {
                                 return false
                             }
                             if (it.type === 'simple') {
@@ -144,6 +145,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
     }
 
     const fn = (value: Condition) => {
+        
         if (value?.type === 'simple') {
             return SimpleConditionEditor
         } else {
@@ -179,6 +181,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                                             if (item.value?.type === 'simple') {
                                                 return (
                                                     <Form.Item
+                                                        key={index}
                                                         className="condition_item"
                                                         wrapperCol={{ span: 24 }}
                                                     >
@@ -188,19 +191,6 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                                                             </Grid.Col>
                                                             <Grid.Col span={4}>
                                                                 <Space>
-                                                                    {/* <Button
-                                                                        onClick={() => {
-                                                                            add(
-                                                                                {
-                                                                                    type: 'simple',
-                                                                                    data: {},
-                                                                                },
-                                                                                index + 1
-                                                                            )
-                                                                        }}
-                                                                    >
-                                                                        添加
-                                                                    </Button> */}
                                                                     <Button
                                                                         onClick={() => {
                                                                             remove(index)
@@ -215,7 +205,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                                                 )
                                             } else {
                                                 return (
-                                                    <div className="condition_item">
+                                                    <div key={index} className="condition_item">
                                                         {item.Comp}
                                                     </div>
                                                 )
@@ -226,7 +216,9 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                             },
                         }),
                     },
-                    Wrapper: ({ value, Components, update }) => {
+                    Wrapper: ({ value, Components, update,path }) => {
+                        console.log(value)
+                       
                         if (!value || !value.data || value.data.length === 0) {
                             return (
                                 <Button
@@ -246,12 +238,12 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                                 </Button>
                             )
                         }
+                       
 
                         const btnGroups = (
                             <Space>
                                 <Button
                                     onClick={() => {
-                                        console.log('hit')
                                         update({
                                             ...value,
                                             data: [
@@ -369,7 +361,7 @@ export default function () {
 
     return (
         <>
-            {Node}
+            <ErrorBoundary>{Node}</ErrorBoundary>
             <ShowData ctx={ctx} />
         </>
     )
@@ -384,4 +376,36 @@ function ShowData(props: { ctx: DefaultFormContext }) {
     }, [props.ctx])
 
     return <pre>{JSON.stringify(data, null, 2)}</pre>
+}
+
+export interface ErrorBoundaryProps {
+	children: React.ReactNode
+	fallback?: (err: any) => React.ReactNode
+}
+
+interface ErrorBoundaryState {
+	err?: any
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+	constructor(props: ErrorBoundaryProps) {
+		super(props)
+		this.state = {}
+	}
+
+	componentDidCatch(error: any, errorInfo: any) {
+		this.setState({ err: error })
+	}
+
+	render() {
+		if (this.state.err) {
+			console.error(this.state.err)
+			if (this.props.fallback) {
+				return this.props.fallback(this.state.err)
+			}
+			return <h1>Something went wrong.</h1>
+		}
+
+		return this.props.children
+	}
 }

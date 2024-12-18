@@ -16,7 +16,8 @@ export interface ArrayEditorWrapperProps<Value = any> {
     path: Path
 }
 
-export interface ArrayEditorConfig<Value = any> extends BaseEditorConfig<Value> {
+export interface ArrayEditorConfig<Value = any>
+    extends BaseEditorConfig<Value> {
     editor: BaseEditor<UnArray<Value>>
     Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
@@ -88,7 +89,8 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
         const Wrapper = this.Wrapper
 
-        return ({ path }) => {
+        return (props) => {
+            const { path } = props
             const value = this.useNode(path)
 
             const Components: {

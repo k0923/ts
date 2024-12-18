@@ -15,7 +15,8 @@ export class CommonEditor<T = any> extends BaseEditor {
         this.Comp = Component
     }
     build(): FormNode {
-        return ({ path }) => {
+        return props => {
+            const { path } = props
             const handler = useCallback(
                 (v: any) => {
                     this.setValue(path, v)

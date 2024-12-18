@@ -1,12 +1,12 @@
-import type { KeyOf } from '@/common/type'
 import { BaseEditor, type BaseEditorConfig, type FormNode } from './editor'
 import { Path } from './context'
 
-export interface ObjectWrapperProps<Value = any> {
+export interface ObjectWrapperProps<Value = any, Ctx = any> {
     Components: Partial<{ [key in keyof Value]: React.ReactElement }>
     update: (newValue: Value) => void
     value: Value
     path: Path
+    ctx: Ctx
 }
 
 export interface ObjectEditorConfig<Value = any> extends BaseEditorConfig<Value> {
@@ -17,7 +17,7 @@ export interface ObjectEditorConfig<Value = any> extends BaseEditorConfig<Value>
 }
 
 export class ObjectEditor<Value = any> extends BaseEditor<Value> {
-    private children: Map<string, BaseEditor> = new Map()
+    private children: Map<string, BaseEditor<any>> = new Map()
 
     private Wrapper?: React.FC<ObjectWrapperProps<Value>>
 
@@ -29,9 +29,9 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         this.handler = valueHandler
         Object.entries(items).forEach(([key, editor]) => {
             if (editor && key) {
-                const E = editor as BaseEditor
+                const E = editor as BaseEditor<any>
                 E.setParent(this)
-                this.children.set(key, editor as BaseEditor)
+                this.children.set(key, editor as BaseEditor<any>)
             }
         })
     }
@@ -43,7 +43,6 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         return super.processValue(value, lastValue)
     }
 
-
     build(): FormNode {
         const items = Array.from(this.children).map(([k, n]) => {
             return {
@@ -52,13 +51,15 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
             }
         })
 
-        return ({ path }) => {
+        return props => {
+            const { path } = props
             const value = this.useNode(path)
             const Components = items.reduce<{
                 [key: string]: React.ReactElement
             }>((p, c) => {
-                p[c.key as KeyOf<Value>] = (
+                p[c.key as Extract<keyof Value, string>] = (
                     <c.Item
+                        {...props}
                         key={c.key}
                         path={path.next(c.key, (parent, child) => {
                             return { ...parent, [c.key]: child }
@@ -72,6 +73,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
                 if (this.Wrapper) {
                     return (
                         <this.Wrapper
+                            ctx={props}
                             path={path}
                             value={value}
                             Components={Components as any}
