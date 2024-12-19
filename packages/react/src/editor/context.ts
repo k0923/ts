@@ -8,11 +8,7 @@ export interface IFormContext {
     unregisterHook(fn: ContextDataHandler): void
 }
 
-export type ContextDataHandler = (
-    path: PathSegment[],
-    value: any,
-    totalValue: any
-) => void
+export type ContextDataHandler = (path: PathSegment[], value: any, totalValue: any) => void
 
 export class DefaultFormContext implements IFormContext {
     private hooks: Set<ContextDataHandler> = new Set()
@@ -68,14 +64,15 @@ export class Path {
         return parentValue
     }
 
-    next(
-        segment: PathSegment | PathSegment[],
-        fn?: (parentValue: any, value: any) => any
-    ): Path {
+    next(segment: PathSegment | PathSegment[], fn?: (parentValue: any, value: any) => any): Path {
         return new Path(segment, this.ctx, this, fn)
     }
 
     setValue(value: any) {
         this.ctx.setValue(this.path, value)
+    }
+
+    getValue(segment: PathSegment[]) {
+        return this.ctx.getValue(segment)
     }
 }

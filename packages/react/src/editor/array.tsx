@@ -16,8 +16,7 @@ export interface ArrayEditorWrapperProps<Value = any> {
     path: Path
 }
 
-export interface ArrayEditorConfig<Value = any>
-    extends BaseEditorConfig<Value> {
+export interface ArrayEditorConfig<Value = any> extends BaseEditorConfig<Value> {
     editor: BaseEditor<UnArray<Value>>
     Wrapper: React.FC<ArrayEditorWrapperProps<Value>>
 }
@@ -47,10 +46,12 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
     build(): FormNode {
         const changeHandler = (path: Path, data: any[]) => {
+            console.log(data)
             this.setValue(path, data as any)
         }
 
-        const add = (path: Path, currentValue: any[], newValue?: any, index?: number) => {
+        const add = (path: Path, newValue?: any, index?: number) => {
+            const currentValue = path.value as any[]
             let newData = undefined
             if (index === undefined) {
                 newData = [...(currentValue ?? []), newValue]
@@ -64,7 +65,8 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             changeHandler(path, newData)
         }
 
-        const remove = (path: Path, currentValue: any[], index: number) => {
+        const remove = (path: Path, index: number) => {
+            const currentValue = path.value as any[]
             if (!currentValue) {
                 return
             }
@@ -72,7 +74,8 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             changeHandler(path, [...currentValue])
         }
 
-        const move = (path: Path, currentValue: any[], oldIndex: number, newIndex: number) => {
+        const move = (path: Path, oldIndex: number, newIndex: number) => {
+            const currentValue = path.value as any[]
             if (oldIndex === newIndex || !currentValue) {
                 return
             }
@@ -89,7 +92,7 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
         const Wrapper = this.Wrapper
 
-        return (props) => {
+        return props => {
             const { path } = props
             const value = this.useNode(path)
 
@@ -119,9 +122,13 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
                     path={path}
                     value={value}
                     Components={Components}
-                    add={(v, i) => add(path, value, v, i)}
-                    remove={i => remove(path, value, i)}
-                    move={(o, n) => move(path, value, o, n)}
+                    add={(v, i) => {
+                        add(path, v, i)
+                    }}
+                    remove={i => {
+                        remove(path, i)
+                    }}
+                    move={(o, n) => move(path, o, n)}
                 />
             )
         }

@@ -50,22 +50,15 @@ export interface ConsoleGameHobby {
 
 const CommonGameEditor = new CommonEditor<string[]>({
     Component: props => {
-        return (
-            <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
-        )
+        return <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
     },
 })
 
 const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
     items: {
-        platform: new CommonEditor<'xbox' | 'ps' | 'switch'>({
+        platform: new CommonEditor<string>({
             Component: props => {
-                return (
-                    <Radio.Group
-                        {...props}
-                        options={['xbox', 'ps', 'switch']}
-                    />
-                )
+                return <Input {...props} />
             },
         }),
         games: CommonGameEditor,
@@ -173,9 +166,7 @@ const UserEditor = new ObjectEditor<User>({
                 if (!value || value.length === 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>
-                                添加爱好
-                            </Button>
+                            <Button onClick={() => add(undefined, 0)}>添加爱好</Button>
                         </Form.Item>
                     )
                 }
@@ -185,9 +176,7 @@ const UserEditor = new ObjectEditor<User>({
                             return (
                                 <Form.Item key={index} label={`爱好${index}`}>
                                     <Grid.Row>
-                                        <Grid.Col span={10}>
-                                            {item.Comp}
-                                        </Grid.Col>
+                                        <Grid.Col span={10}>{item.Comp}</Grid.Col>
                                         <Grid.Col span={10}>
                                             <Button
                                                 onClick={() => {
@@ -233,15 +222,17 @@ const UserEditor = new ObjectEditor<User>({
                             },
                         },
                         {
-                            required:true,
-                        }
+                            required: true,
+                        },
                     ]}
                     field={[...path.path, 'name'].join('.')}
                     label="姓名"
                 >
                     {props.Components.name}
                 </Form.Item>
-                <Form.Item label="年龄" required>{props.Components.age}</Form.Item>
+                <Form.Item label="年龄" required>
+                    {props.Components.age}
+                </Form.Item>
                 <Form.Item label="性别">{props.Components.gender}</Form.Item>
                 {props.Components.Hobbies}
             </>
@@ -251,10 +242,16 @@ const UserEditor = new ObjectEditor<User>({
 
 const CompanyEditor = new ObjectEditor<Company>({
     Wrapper: props => {
-        const {path} = props
+        const { path } = props
         return (
             <>
-                <Form.Item field={[...path.path,'name'].join('.')} rules={[{required:true}]} label="名称">{props.Components.name}</Form.Item>
+                <Form.Item
+                    field={[...path.path, 'name'].join('.')}
+                    rules={[{ required: true }]}
+                    label="名称"
+                >
+                    {props.Components.name}
+                </Form.Item>
                 <Form.Item label="地址">{props.Components.address}</Form.Item>
                 {props.Components.Employees}
             </>
@@ -287,9 +284,7 @@ const CompanyEditor = new ObjectEditor<Company>({
                 if (!value || value.length == 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>
-                                添加员工
-                            </Button>
+                            <Button onClick={() => add(undefined, 0)}>添加员工</Button>
                         </Form.Item>
                     )
                 }
@@ -299,16 +294,8 @@ const CompanyEditor = new ObjectEditor<Company>({
                             <Grid.Row>
                                 <Grid.Col span={20}>{item.Comp}</Grid.Col>
                                 <Grid.Col span={4}>
-                                    <Button onClick={() => remove(index)}>
-                                        删除
-                                    </Button>
-                                    <Button
-                                        onClick={() =>
-                                            add(undefined, index + 1)
-                                        }
-                                    >
-                                        添加
-                                    </Button>
+                                    <Button onClick={() => remove(index)}>删除</Button>
+                                    <Button onClick={() => add(undefined, index + 1)}>添加</Button>
                                 </Grid.Col>
                             </Grid.Row>
                         </Form.Item>

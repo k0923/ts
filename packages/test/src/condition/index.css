@@ -3,6 +3,16 @@
     display: flex;
 }
 
+.condition_sub_container {
+    border: 1px solid black;
+    padding: 10px 10px 10px 10px;
+    margin: 10px 0px 10px 0px;
+}
+
+.condition_sub_container.hover {
+    border: 1px solid red;
+}
+
 .condition_opt_container {
     width: 40px;
     position: relative;
@@ -12,10 +22,10 @@
     position: absolute;
     cursor: pointer;
     z-index: 10;
-    left: 12px;
+    left: 5px;
     font-size: 15px;
     background-color: white;
-    top: calc(50% - 20px);
+    top: calc(50% - 22px);
 }
 
 .condition_items_container {
@@ -26,10 +36,20 @@
     position: relative;
 }
 
-.condition_item::before {
+.condition_items_container.single > .condition_item {
+    width: calc(100% - 20px);
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.condition_items_container.single > .condition_item::before {
+    content: none;
+}
+
+.condition_items_container > .condition_item::before {
     content: '';
     position: absolute;
-    left: -20px;
+    left: -26px;
     border-left: 2px solid blue;
     top: -10px;
     bottom: -10px;
@@ -37,14 +57,14 @@
 
 .condition_items_container > .condition_item:first-child::before {
     top: 50%;
-    width: 10px;
+    width: 15px;
     border-top: 2px solid blue;
     border-top-left-radius: 7px;
 }
 
 .condition_items_container > .condition_item:last-child::before {
     bottom: 50%;
-    width: 10px;
+    width: 15px;
     border-bottom: 2px solid blue;
     border-bottom-left-radius: 7px;
 }
