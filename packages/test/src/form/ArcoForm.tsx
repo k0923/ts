@@ -1,14 +1,4 @@
-import {
-    Button,
-    Form,
-    Grid,
-    Input,
-    InputNumber,
-    Radio,
-    Checkbox,
-    Divider,
-    FormInstance,
-} from '@arco-design/web-react'
+import { Button, Form, Grid, Input, InputNumber, Radio, Checkbox, Divider, FormInstance } from '@arco-design/web-react'
 import {
     ArrayEditor,
     BaseEditor,
@@ -20,7 +10,7 @@ import {
     Path,
     PathSegment,
 } from '@k0923/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export interface Company {
     name: string
@@ -50,7 +40,16 @@ export interface ConsoleGameHobby {
 
 const CommonGameEditor = new CommonEditor<string[]>({
     Component: props => {
-        return <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
+        const { path, onChange, ...otherProps } = props
+
+        return (
+            <Checkbox.Group
+                {...otherProps}
+                value={path.value}
+                onChange={onChange}
+                options={['游戏1', '游戏2', '游戏3']}
+            />
+        )
     },
 })
 
@@ -58,7 +57,8 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
     items: {
         platform: new CommonEditor<string>({
             Component: props => {
-                return <Input {...props} />
+                const { path, onChange, ...otherProps } = props
+                return <Input {...otherProps} value={path.value} onChange={onChange} />
             },
         }),
         games: CommonGameEditor,
@@ -69,7 +69,6 @@ export type GameHobby = MobileGameHobby | ConsoleGameHobby
 
 const GameEditor = new ObjectEditor<GameHobby>({
     valueHandler: (value, last) => {
-        console.log(JSON.stringify(last), JSON.stringify(value))
         if (value?.type !== last?.type) {
             return {
                 ...value,
@@ -81,8 +80,9 @@ const GameEditor = new ObjectEditor<GameHobby>({
     items: {
         type: new CommonEditor<'console' | 'mobile'>({
             Component: props => {
+                const { path, onChange, ...otherProps } = props
                 return (
-                    <Radio.Group {...props}>
+                    <Radio.Group {...otherProps} value={path.value} onChange={onChange}>
                         <Radio value="console">Console</Radio>
                         <Radio value="mobile">mobile</Radio>
                     </Radio.Group>
@@ -91,7 +91,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
         }),
         data: new FuncEditor<any>({
             cacheSize: 10,
-            func: (value, path) => {
+            func: path => {
                 const parentValue = path.parent?.value
                 if (parentValue?.type === 'console') {
                     return ConsoleGameEditor
@@ -107,12 +107,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
         const { path } = props
         return (
             <>
-                <Form.Item
-                    field={[...path.path, 'type'].join('.')}
-                    label="类型"
-                    required
-                    rules={[{ required: true }]}
-                >
+                <Form.Item field={[...path.path, 'type'].join('.')} label="类型" required rules={[{ required: true }]}>
                     {props.Components.type}
                 </Form.Item>
                 <Form.Item label="数据">{props.Components.data}</Form.Item>
@@ -130,6 +125,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
 
 const UserEditor = new ObjectEditor<User>({
     valueHandler: (value, last) => {
+        console.log(value, last)
         if (value?.name === 'abc') {
             return {
                 ...value,
@@ -141,18 +137,21 @@ const UserEditor = new ObjectEditor<User>({
     items: {
         name: new CommonEditor<string>({
             Component: props => {
-                return <Input {...props} />
+                const { path, onChange, ...otherProps } = props
+                return <Input {...otherProps} value={path.value} onChange={onChange} />
             },
         }),
         age: new CommonEditor<number>({
             Component: props => {
-                return <InputNumber {...props} />
+                const { path, onChange, ...otherProps } = props
+                return <InputNumber {...otherProps} value={path.value} onChange={onChange} />
             },
         }),
         gender: new CommonEditor({
             Component: props => {
+                const { path, onChange, ...otherProps } = props
                 return (
-                    <Radio.Group {...props}>
+                    <Radio.Group value={path.value} onChange={onChange} {...otherProps}>
                         <Radio value="male">男</Radio>
                         <Radio value="female">女</Radio>
                     </Radio.Group>
@@ -162,7 +161,8 @@ const UserEditor = new ObjectEditor<User>({
         Hobbies: new ArrayEditor<GameHobby[]>({
             editor: GameEditor,
             Wrapper: props => {
-                const { add, Components, remove, move, value } = props
+                const { add, Components, remove, path } = props
+                const value = path.value
                 if (!value || value.length === 0) {
                     return (
                         <Form.Item label=" ">
@@ -204,11 +204,8 @@ const UserEditor = new ObjectEditor<User>({
         }),
     },
     Wrapper: props => {
-        const [count, setCount] = useState(0)
         const { path } = props
-        useEffect(() => {
-            setCount(count + 1)
-        }, [props.value])
+        const count = useCount()
         return (
             <>
                 <Divider>{count}</Divider>
@@ -240,16 +237,18 @@ const UserEditor = new ObjectEditor<User>({
     },
 })
 
+function useCount() {
+    const countRef = useRef(0)
+    countRef.current += 1
+    return countRef.current
+}
+
 const CompanyEditor = new ObjectEditor<Company>({
     Wrapper: props => {
         const { path } = props
         return (
             <>
-                <Form.Item
-                    field={[...path.path, 'name'].join('.')}
-                    rules={[{ required: true }]}
-                    label="名称"
-                >
+                <Form.Item field={[...path.path, 'name'].join('.')} rules={[{ required: true }]} label="名称">
                     {props.Components.name}
                 </Form.Item>
                 <Form.Item label="地址">{props.Components.address}</Form.Item>
@@ -276,11 +275,9 @@ const CompanyEditor = new ObjectEditor<Company>({
                 // }
                 return value
             },
-            Wrapper: ({ value, add, remove, Components }) => {
-                const [count, setCount] = useState(0)
-                useEffect(() => {
-                    setCount(count + 1)
-                }, [value])
+            Wrapper: ({ path, add, remove, Components }) => {
+                const count = useCount()
+                const value = path.value
                 if (!value || value.length == 0) {
                     return (
                         <Form.Item label=" ">
@@ -322,7 +319,13 @@ export class AcroFormContext implements IFormContext {
         this.hooks.forEach(fn => fn(path, value, this.form.getFieldsValue()))
     }
     getValue(path: PathSegment[]) {
-        return this.form.getFieldValue(path.join('.'))
+        const pathStr = path.join('.')
+        // console.log(pathStr)
+        if (!pathStr) {
+            // console.log(this.form.getFieldsValue())
+            return this.form.getFieldsValue()
+        }
+        return this.form.getFieldValue(pathStr)
     }
 }
 

@@ -11,6 +11,7 @@
 
 .condition_sub_container.hover {
     border: 1px solid red;
+    background-color: pink;
 }
 
 .condition_opt_container {

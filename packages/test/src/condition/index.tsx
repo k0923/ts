@@ -1,20 +1,19 @@
+import React from 'react'
 import { Button, Form, Grid, Input, Select, Space } from '@arco-design/web-react'
 import {
     ArrayEditor,
     CommonEditor,
     DefaultFormContext,
     FuncEditor,
+    IFormContext,
     ObjectEditor,
     Path,
 } from '@k0923/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './index.css'
-import React from 'react'
-
-const level = Symbol('level')
 
 export interface ReactiveProps<T> {
-    value: T
+    path: Path
     onChange: (value: T) => void
 }
 
@@ -35,9 +34,7 @@ export enum Operator {
     nonEmpty = 'nonEmpty', // 不为空
 }
 
-export type Condition<X = any, Opt = any, Y = any> =
-    | GroupCondition<X, Opt, Y>
-    | SimpleCondition<X, Opt, Y>
+export type Condition<X = any, Opt = any, Y = any> = GroupCondition<X, Opt, Y> | SimpleCondition<X, Opt, Y>
 
 export interface GroupCondition<X, Opt, Y> {
     type: 'and' | 'or'
@@ -136,15 +133,12 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
 
     let GroupConditionEditor: ObjectEditor<GroupCondition<X, Opt, Y>> | null = null
 
-    const filterEmptyCondition = (value: GroupCondition<X, Opt, Y>) => {
+    const filterEmptyCondition = (value: GroupCondition<X, Opt, Y>, last: GroupCondition<X, Opt, Y>) => {
         if (value) {
             if (value.type === 'and' || value.type === 'or') {
                 if (
                     value.data.some(
-                        it =>
-                            !it ||
-                            ((it.type === 'and' || it.type === 'or') &&
-                                (!it.data || it.data.length === 0))
+                        it => !it || ((it.type === 'and' || it.type === 'or') && (!it.data || it.data.length === 0))
                     )
                 ) {
                     return {
@@ -160,10 +154,13 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                         }),
                     }
                 }
-                if (value.data.length === 0 || value.data.length === 1) {
-                    return {
-                        type: value.type,
-                        data: value.data,
+
+                if (last && value.data.length !== last.data.length) {
+                    if (value.data.length === 0 || value.data.length === 1) {
+                        return {
+                            type: value.type,
+                            data: value.data,
+                        }
                     }
                 }
             }
@@ -171,15 +168,16 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
         return value
     }
 
-    const fn = (value: Condition) => {
-        if (value?.type === 'simple') {
+    const fn = (path?: Path) => {
+        if (path?.value?.type === 'simple') {
             return SimpleConditionEditor
         } else {
             if (GroupConditionEditor === null) {
                 GroupConditionEditor = new ObjectEditor<GroupCondition<X, Opt, Y>>({
                     items: {
-                        type: new CommonEditor<typeof value.type>({
-                            Component: ({ value, onChange }) => {
+                        type: new CommonEditor<'and' | 'or'>({
+                            Component: ({ path, onChange }) => {
+                                const value = path.value
                                 if (!value) {
                                     return null
                                 }
@@ -197,9 +195,19 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                             editor: new FuncEditor<Condition<X, Opt, Y>>({
                                 cacheSize: 10,
                                 func: fn,
+                                // valueHandler: (value, last) => {
+                                //     console.log(JSON.stringify(value, null, 4), JSON.stringify(last, null, 4))
+                                //     console.log(value === last)
+                                //     return last
+                                // },
                             }),
+                            // valueHandler: (value, last) => {
+                            //     console.log(JSON.stringify(value, null, 4), JSON.stringify(last, null, 4))
+                            //     console.log(value === last)
+                            //     return last
+                            // },
                             Wrapper: props => {
-                                const { Components, remove, value } = props
+                                const { Components, remove } = props
 
                                 return (
                                     <>
@@ -212,9 +220,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                                                         wrapperCol={{ span: 24 }}
                                                     >
                                                         <Grid.Row gutter={4}>
-                                                            <Grid.Col flex="auto">
-                                                                {item.Comp}
-                                                            </Grid.Col>
+                                                            <Grid.Col flex="auto">{item.Comp}</Grid.Col>
                                                             <Grid.Col flex="24px">
                                                                 <Space>
                                                                     <Button
@@ -242,24 +248,13 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                             },
                         }),
                     },
-                    Wrapper: ({ value, Components, update, path }) => {
+                    Wrapper: ({ Components, update, path }) => {
                         const divRef = useRef<HTMLDivElement>(null)
                         const p = path as any
                         const [lv] = useState(() => {
-                            if (path.parent?.parent && p.parent?.parent[level] !== undefined) {
-                                p[level] = (p.parent?.parent[level] ?? 0) + 1
-                            } else {
-                                p[level] = 0
-                            }
-                            return p[level]
+                            return p.level++
                         })
-                        if (lv === 0) {
-                            let p: any = path
-                            while (p) {
-                                console.log(p.path.join('.'), (p as any)[level])
-                                p = p.parent
-                            }
-                        }
+                        const value = path.value
 
                         if (!value || !value.data || value.data.length === 0) {
                             return (
@@ -349,9 +344,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                         if (value.data.length === 1) {
                             return (
                                 <div ref={divRef} className={subContainerClass}>
-                                    <div className="condition_items_container single">
-                                        {Components.data}
-                                    </div>
+                                    <div className="condition_items_container single">{Components.data}</div>
                                     <div>{btnGroups}</div>
                                 </div>
                             )
@@ -361,16 +354,14 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                             <div ref={divRef} className={subContainerClass}>
                                 <div className="condition_container">
                                     <div className="condition_opt_container">{Components.type}</div>
-                                    <div className="condition_items_container">
-                                        {Components.data}
-                                    </div>
+                                    <div className="condition_items_container">{Components.data}</div>
                                 </div>
                                 <div>{btnGroups}</div>
                             </div>
                         )
                     },
                     valueHandler: (value, last) => {
-                        return filterEmptyCondition(value)
+                        return filterEmptyCondition(value, last)
                     },
                 })
             }
@@ -381,19 +372,24 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
     return fn(null as any)
 }
 
-// const next = Path.prototype.next
-// Path.prototype.next = function (s, fn) {
-//     console.log('next')
-//     const t = this as any
-//     if(!t.level) {
-//         t.level = 0
-//     }
-//     const result = next.call(this, s, fn)
-//     const t1 = result as any
-//     t1.level = t.level
+const next = Path.prototype.next
+Path.prototype.next = function (s, fn) {
+    const t = this as any
+    if (!t.level) {
+        t.level = 0
+    }
+    const result = next.call(this, s, fn)
+    const t1 = result as any
+    t1.level = t.level
 
-//     return result
-// }
+    return result
+}
+
+function useCount() {
+    const countRef = useRef(0)
+    countRef.current += 1
+    return countRef.current
+}
 
 export default function () {
     const ctx = useMemo(() => new DefaultFormContext(undefined), [])
@@ -401,23 +397,26 @@ export default function () {
         const path = new Path(['a'], ctx)
         const options: ConditionOptions<string, string, string> = {
             xPicker: props => {
+                const count = useCount()
                 return (
-                    <Select {...props}>
+                    <Select {...props} placeholder={`${count}`}>
                         <Select.Option value={'name'}>姓名</Select.Option>
                         <Select.Option value={'age'}>年龄</Select.Option>
                     </Select>
                 )
             },
             operator: props => {
+                const count = useCount()
                 return (
-                    <Select {...props}>
+                    <Select {...props} placeholder={`${count}`}>
                         <Select.Option value={Operator.equals}>等于</Select.Option>
                         <Select.Option value={Operator.notEquals}>不等于</Select.Option>
                     </Select>
                 )
             },
             yPicker: props => {
-                return <Input {...props} />
+                const count = useCount()
+                return <Input {...props} placeholder={`${count}`} />
             },
         }
 
@@ -440,7 +439,7 @@ export default function () {
     )
 }
 
-function ShowData(props: { ctx: DefaultFormContext }) {
+export function ShowData(props: { ctx: IFormContext }) {
     const [data, setData] = useState(props.ctx.getValue([]))
     useEffect(() => {
         props.ctx.registerHook((_path, _value, totalValue) => {

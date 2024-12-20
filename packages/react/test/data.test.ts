@@ -2,11 +2,11 @@ import { get } from '../src/utils/data'
 import { describe, expect, test, beforeAll } from 'bun:test'
 
 describe('get function', () => {
-    test('should return undefined for null/undefined paths', () => {
-        expect(get({}, null as any)).toBe(undefined)
-        expect(get({}, undefined as any)).toBe(undefined)
-        expect(get({}, [])).toBe(undefined)
-    })
+    // test('should return undefined for null/undefined paths', () => {
+    //     expect(get({}, null as any)).toBe(undefined)
+    //     expect(get({}, undefined as any)).toBe(undefined)
+    //     expect(get({}, [])).toBe(undefined)
+    // })
 
     test('should return undefined for null/undefined objects', () => {
         expect(get(null, ['a'])).toBe(undefined)

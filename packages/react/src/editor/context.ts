@@ -29,7 +29,7 @@ export class DefaultFormContext implements IFormContext {
     }
 }
 
-export class Path {
+export class Path<Value = any> {
     constructor(
         private _segment: PathSegment | PathSegment[],
         private ctx: IFormContext,
@@ -41,7 +41,7 @@ export class Path {
         return (this._parent?.path ?? []).concat(this._segment).flat()
     }
 
-    get value() {
+    get value(): Value | undefined {
         return this.ctx.getValue(this.path)
     }
 

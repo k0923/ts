@@ -29,7 +29,9 @@ export class LRUCache<K, V> {
         // 如果缓存已满，删除最久未使用的项（第一个）
         else if (this.cache.size >= this.max) {
             const firstKey = this.cache.keys().next().value
-            this.cache.delete(firstKey)
+            if (firstKey) {
+                this.cache.delete(firstKey)
+            }
         }
         // 添加新项到末尾（最近使用）
         this.cache.set(key, value)

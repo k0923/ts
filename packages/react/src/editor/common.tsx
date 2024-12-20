@@ -3,7 +3,6 @@ import { BaseEditor, type FormNode } from './editor'
 import { Path } from './context'
 
 export interface CommonEditorProps<T> {
-    value: T
     onChange: (v: T) => void
     path: Path
 }
@@ -23,9 +22,9 @@ export class CommonEditor<T = any> extends BaseEditor {
                 },
                 [path.path.flat().join('.')]
             )
-            const value = this.useNode(path)
+            this.useVersion(path)
             const Comp = this.Comp
-            return <Comp value={value} onChange={handler} path={path} />
+            return <Comp onChange={handler} path={path} />
         }
     }
 }

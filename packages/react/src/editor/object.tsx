@@ -4,7 +4,6 @@ import { Path } from './context'
 export interface ObjectWrapperProps<Value = any, Ctx = any> {
     Components: Partial<{ [key in keyof Value]: React.ReactElement }>
     update: (newValue: Value) => void
-    value: Value
     path: Path
     ctx: Ctx
 }
@@ -53,7 +52,8 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
         return props => {
             const { path } = props
-            const value = this.useNode(path)
+            this.useVersion(path)
+
             const Components = items.reduce<{
                 [key: string]: React.ReactElement
             }>((p, c) => {
@@ -75,7 +75,6 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
                         <this.Wrapper
                             ctx={props}
                             path={path}
-                            value={value}
                             Components={Components as any}
                             update={(v: Value) => {
                                 this.setValue(path, v)

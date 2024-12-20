@@ -11,8 +11,8 @@ export interface ArrayEditorWrapperProps<Value = any> {
         index: number
         value: UnArray<Value>
         Comp: React.ReactElement
+        path: Path
     }[]
-    value?: Value
     path: Path
 }
 
@@ -56,11 +56,7 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             if (index === undefined) {
                 newData = [...(currentValue ?? []), newValue]
             } else {
-                newData = [
-                    ...(currentValue ?? []).slice(0, index),
-                    newValue,
-                    ...(currentValue ?? []).slice(index),
-                ]
+                newData = [...(currentValue ?? []).slice(0, index), newValue, ...(currentValue ?? []).slice(index)]
             }
             changeHandler(path, newData)
         }
@@ -70,8 +66,9 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             if (!currentValue) {
                 return
             }
-            currentValue.splice(index, 1)
-            changeHandler(path, [...currentValue])
+            const removedData = [...currentValue]
+            removedData.splice(index, 1)
+            changeHandler(path, removedData)
         }
 
         const move = (path: Path, oldIndex: number, newIndex: number) => {
@@ -94,33 +91,31 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
         return props => {
             const { path } = props
-            const value = this.useNode(path)
+            this.useVersion(path)
 
             const Components: {
                 index: number
                 value: UnArray<Value>
                 Comp: React.ReactElement
+                path: Path
             }[] =
-                (value as UnArray<Value>[])?.map((itemV, index) => {
+                (path.value as UnArray<Value>[])?.map((itemV, index) => {
+                    const subPath = path.next(index, (p, c) => {
+                        const newP = [...p]
+                        newP[index] = c
+                        return newP
+                    })
                     return {
                         index: index,
                         value: itemV,
-                        Comp: (
-                            <Child
-                                path={path.next(index, (p, c) => {
-                                    const newP = [...p]
-                                    newP[index] = c
-                                    return newP
-                                })}
-                            />
-                        ),
+                        path: subPath,
+                        Comp: <Child path={subPath} />,
                     }
                 }) ?? []
 
             return (
                 <Wrapper
                     path={path}
-                    value={value}
                     Components={Components}
                     add={(v, i) => {
                         add(path, v, i)

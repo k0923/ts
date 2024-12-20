@@ -6,6 +6,7 @@ import { sleep, userEditor } from './form/Form'
 import { Button, Form, Input } from '@arco-design/web-react'
 import Test from './form/ArcoForm'
 import Condition from './condition'
+import Condition2 from './condition/v2'
 
 function App() {
     const [count, setCount] = useState(0)
@@ -13,7 +14,7 @@ function App() {
     f.add(setCount)
     console.log(Array.from(f).length)
 
-    return <Condition />
+    return <Condition2 />
 
     // return (
     //   <Form form={form}>

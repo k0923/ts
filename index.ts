@@ -1,20 +1,11 @@
-interface Producer<out T = any> {
-    produce(test:T):T | undefined
+function Test({ name, age }: { name: string; age: number }) {
+    console.log(name, age)
 }
 
-class Animal {}
-class Dog extends Animal {
-    hello() {
-        console.log('hello')
-    }
+Test({ name: 'hello', age: 12 })
+
+function Test1({ name, age }: { name: string; age: number }) {
+    Test({ name, age: 0 })
 }
 
-const fun = Dog.prototype.hello
-
-Dog.prototype.hello = function() {
-    fun.call(this)
-    console.log(this)
-}
-
-let d = new Dog()
-d.hello()
+Test1({ name: 'hello', age: 12 })

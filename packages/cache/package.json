@@ -20,7 +20,7 @@
         "typescript",
         "localStorage"
     ],
-    "author": "您的名字",
+    "author": "k0923",
     "license": "MIT",
     "devDependencies": {
         "typescript": "^4.x.x"

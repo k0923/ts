@@ -1,36 +1,42 @@
-import { BaseEditor, FormNode } from './editor'
 import { LRUCache } from '../utils/lru'
-import { Path, PathSegment } from './context'
-import { useEffect, useState } from 'react'
+import { Path } from './context'
+import { BaseEditor, BaseEditorConfig, FormNode, ValueHandler } from './editor'
 
-export interface FuncEditorConfig<Value> {
-    cacheSize: number
-    func: (value: Value, path: Path) => BaseEditor<Value> | undefined
+export interface FuncEditorConfig<Value> extends BaseEditorConfig<Value> {
+    cacheSize?: number
+    func: (path: Path) => BaseEditor<Value> | undefined
 }
 
 export class FuncEditor<Value> extends BaseEditor<Value> {
-    private fn: (value: Value, path: Path) => BaseEditor<Value> | undefined
+    private fn: (path: Path) => BaseEditor<Value> | undefined
 
     private cache: LRUCache<BaseEditor<Value>, FormNode>
 
-    constructor({ func, cacheSize }: FuncEditorConfig<Value>) {
+    private handler: ValueHandler<Value> | undefined
+
+    constructor({ func, cacheSize = 10, valueHandler }: FuncEditorConfig<Value>) {
         super()
         this.fn = func
+        this.handler = valueHandler
         this.cache = new LRUCache<BaseEditor<Value>, FormNode>(cacheSize)
+    }
+
+    processValue(value: Value, lastValue: Value): Value {
+        if (this.handler) {
+            return this.handler(value, lastValue)
+        }
+        return value
     }
 
     build(): FormNode {
         const EmptyNode: FormNode = () => null
 
         const getNode = (path: Path) => {
-            const value = path.value
-            const editor = this.fn(value, path)
+            const editor = this.fn(path)
             if (!editor) {
                 return EmptyNode
             }
-            if (this.parent) {
-                editor.setParent(this.parent)
-            }
+            editor.setParent(this)
             let node = this.cache.get(editor)
             if (!node) {
                 node = editor.build()
@@ -40,34 +46,9 @@ export class FuncEditor<Value> extends BaseEditor<Value> {
         }
 
         return ({ path }) => {
-            const [Node, setNode] = useState<FormNode>(() => getNode(path))
-            useEffect(() => {
-                const handler = (seg: PathSegment[], v: Value) => {
-                    const updatePath = seg.join('.')
-                    const currentPath = path.path.join('.')
-                    // console.log({
-                    //     updatePath,
-                    //     currentPath,
-                    //     match: updatePath.indexOf(currentPath),
-                    // })
-
-                    // if (updatePath !== '' && currentPath.indexOf(updatePath) < 0) {
-                    //     console.log('return')
-                    //     return
-                    // }
-
-                    // if (Object.is(value, v)) {
-                    //     return
-                    // }
-                    // console.log('reset')
-                    // setNode(getNode(path))
-                }
-                path.context.registerHook(handler)
-                return () => {
-                    path.context.unregisterHook(handler)
-                }
-            }, [path.path.join('.')])
-            return <Node path={path} />
+            this.useVersion(path)
+            const Node = getNode(path)
+            return <Node path={path.next([], (_p, c) => c)} />
         }
     }
 }
