@@ -110,7 +110,7 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                                 func: fn,
                             }),
                             Wrapper: props => {
-                                const { Components, remove, add, path } = props
+                                const { Components, remove, add } = props
 
                                 return (
                                     <>

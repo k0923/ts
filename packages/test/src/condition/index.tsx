@@ -398,8 +398,9 @@ export default function () {
         const options: ConditionOptions<string, string, string> = {
             xPicker: props => {
                 const count = useCount()
+                const {path,onChange} = props
                 return (
-                    <Select {...props} placeholder={`${count}`}>
+                    <Select value={path.value} onChange={onChange} placeholder={`${count}`}>
                         <Select.Option value={'name'}>姓名</Select.Option>
                         <Select.Option value={'age'}>年龄</Select.Option>
                     </Select>
@@ -407,8 +408,9 @@ export default function () {
             },
             operator: props => {
                 const count = useCount()
+                const {path,onChange} = props
                 return (
-                    <Select {...props} placeholder={`${count}`}>
+                    <Select value={path.value} onChange={onChange} placeholder={`${count}`}>
                         <Select.Option value={Operator.equals}>等于</Select.Option>
                         <Select.Option value={Operator.notEquals}>不等于</Select.Option>
                     </Select>
@@ -416,7 +418,8 @@ export default function () {
             },
             yPicker: props => {
                 const count = useCount()
-                return <Input {...props} placeholder={`${count}`} />
+                const {path,onChange} = props
+                return <Input value={path.value} onChange={onChange}  placeholder={`${count}`} />
             },
         }
 

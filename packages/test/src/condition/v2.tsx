@@ -9,10 +9,11 @@ import {
     Path,
     SimpleCondition,
 } from '@k0923/react'
-import React, { useMemo, useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { AcroFormContext, ArcoFormBody } from '../form/ArcoForm'
 import './index.css'
-import { ReactiveProps, ShowData } from '.'
+import { ShowData } from '.'
+import React from 'react'
 function useCount() {
     const countRef = useRef(0)
     countRef.current += 1
@@ -21,9 +22,19 @@ function useCount() {
 
 const FormItem = Form.Item
 
-Form.Item = props => {
-    const { onChange, ...newProps } = props
-    return <FormItem {...newProps} />
+Form.Item = (props) => {
+    const { children,...otherProps } = props
+    if (typeof children === 'function') {
+        return <FormItem {...props}></FormItem>
+    }
+
+   
+    const newChildren = (
+        <>
+            {children}
+        </>
+    )
+    return <FormItem {...otherProps}>{newChildren}</FormItem>
 }
 
 const itemEditor = new ObjectEditor<SimpleCondition<string, string, string>>({
@@ -80,11 +91,11 @@ const itemEditor = new ObjectEditor<SimpleCondition<string, string, string>>({
                                     value={path.value}
                                     placeholder={`${count}`}
                                     onChange={v => {
-                                        console.log(onChange)
+                                       
                                         onChange(v)
                                     }}
                                 />
-                            </Form.Item>
+                             </Form.Item>
                         )
                     },
                 }),
@@ -288,6 +299,7 @@ const groupOptEditor = new CommonEditor<string>({
 export default function () {
     const [form] = Form.useForm()
     const ctx = useMemo(() => new AcroFormContext(form), [])
+    // const ctx = useMemo(() => new DefaultFormContext({}), [])
     const path = new Path(['a'], ctx)
     const Editor = useMemo(() => {
         const editor = BuildEditor({
@@ -315,6 +327,7 @@ export default function () {
                 <ArcoFormBody path={path} editor={Editor} />
                 <Button htmlType="submit">提交</Button>
             </Form>
+            {/* <ArcoFormBody path={path} editor={Editor} /> */}
             <ShowData ctx={ctx} />
         </>
     )

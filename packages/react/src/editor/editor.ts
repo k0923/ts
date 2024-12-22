@@ -126,7 +126,7 @@ export abstract class BaseEditor<out Value = any> {
         const [_, setVersion] = useState<number>(0)
         useEffect(() => {
             const pathStr = path.path.flat().join('.')
-            this.hooks.set(pathStr, () => setVersion(x => x + 1))
+            this.hooks.set(pathStr, ()=>setVersion(v=>v+1))
             return () => {
                 this.hooks.delete(pathStr)
             }
