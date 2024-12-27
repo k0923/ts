@@ -1,18 +1,5 @@
-import { useRef } from 'react'
 import { ArrayEditor, BaseEditor, FuncEditor, ObjectEditor, Path } from '../editor'
 
-const next = Path.prototype.next
-Path.prototype.next = function (s, fn) {
-    const t = this as any
-    if (!t.level) {
-        t.level = 0
-    }
-    const result = next.call(this, s, fn)
-    const t1 = result as any
-    t1.level = t.level
-
-    return result
-}
 export type Condition<X = any, Opt = any, Y = any> = GroupCondition<X, Opt, Y> | SimpleCondition<X, Opt, Y>
 
 export interface GroupCondition<X, Opt, Y> {
@@ -63,7 +50,7 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
     const filterEmptyCondition = (value: GroupCondition<X, Opt, Y>, last: GroupCondition<X, Opt, Y>) => {
         if (value) {
             if (value.type === 'and' || value.type === 'or') {
-                if (last && value.data.length !== last.data.length) {
+                if (last && last.data && value.data.length !== last.data.length) {
                     return {
                         type: value.type,
                         data: value.data.filter(it => {
@@ -93,8 +80,11 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                 }
             }
         }
+
         return value
     }
+
+    let rootPath: Path | null = null
 
     const fn = (path?: Path) => {
         if (path?.value?.type === 'simple') {
@@ -130,18 +120,31 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                                     </>
                                 )
                             },
+                            valueHandler: (value, last) => {
+                                if (value && value.length > 0 && value.some(it => !it)) {
+                                    return value.filter(it => it)
+                                }
+                                return value
+                            },
                         }),
                     },
                     Wrapper: ({ Components, update, path }) => {
-                        const p = path as any
-                        const level = useRef(p.level++)
+                        let level = 0
+                        if (rootPath === null) {
+                            rootPath = path
+                        } else {
+                            const subPathArray = path.path.slice(rootPath.path.length)
+                            level = subPathArray.filter(it => it === 'data').length
+                        }
+                        console.log('level:', level)
+
                         return options.groupWrapper({
                             Node: {
                                 type: Components.type,
                                 data: Components.data,
                             },
                             path: path,
-                            level: level.current ?? 0,
+                            level: level,
                             add: (condition: Condition) => {
                                 const value = path.value
                                 if (!value) {
@@ -151,11 +154,19 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                                         update(condition)
                                     }
                                     return
+                                } else if (Object.keys(value).length === 0 || !value.type) {
+                                    if (condition.type === 'simple') {
+                                        console.error('condition should start with "and" or "or"')
+                                        return
+                                    }
+                                    update(condition)
+                                    return
+                                } else {
+                                    update({
+                                        ...value,
+                                        data: [...value?.data, condition],
+                                    })
                                 }
-                                update({
-                                    ...value,
-                                    data: [...value?.data, condition],
-                                })
                             },
                             remove: () => update(undefined as any),
                         })

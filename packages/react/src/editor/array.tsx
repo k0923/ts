@@ -3,15 +3,43 @@ import { Path } from './context'
 
 export type UnArray<T> = T extends Array<infer U> ? U : T
 
+export class ArrayItem {
+    private _path: Path | null = null
+
+    constructor(
+        private _index: number,
+        private parentPath: Path,
+        private Node: FormNode
+    ) {}
+
+    get index() {
+        return this._index
+    }
+
+    get path() {
+        if (!this._path) {
+            this._path = this.parentPath.next(this.index, (p, c) => {
+                const newP = [...p]
+                newP[this.index] = c
+                return newP
+            })
+        }
+        return this._path
+    }
+
+    get Comp(): React.ReactElement {
+        return <this.Node path={this.path} />
+    }
+}
+
 export interface ArrayEditorWrapperProps<Value = any> {
     add: (defaultValue?: UnArray<Value>, index?: number) => void
     remove: (index: number) => void
     move: (oldIndex: number, newIndex: number) => void
     Components: {
-        index: number
-        value: UnArray<Value>
-        Comp: React.ReactElement
         path: Path
+        index: number
+        Comp: React.ReactElement
     }[]
     path: Path
 }
@@ -46,7 +74,6 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
 
     build(): FormNode {
         const changeHandler = (path: Path, data: any[]) => {
-            console.log(data)
             this.setValue(path, data as any)
         }
 
@@ -93,24 +120,9 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             const { path } = props
             this.useVersion(path)
 
-            const Components: {
-                index: number
-                value: UnArray<Value>
-                Comp: React.ReactElement
-                path: Path
-            }[] =
-                (path.value as UnArray<Value>[])?.map((itemV, index) => {
-                    const subPath = path.next(index, (p, c) => {
-                        const newP = [...p]
-                        newP[index] = c
-                        return newP
-                    })
-                    return {
-                        index: index,
-                        value: itemV,
-                        path: subPath,
-                        Comp: <Child path={subPath} />,
-                    }
+            const Components =
+                (path.value as UnArray<Value>[])?.map((_itemV, index) => {
+                    return new ArrayItem(index, path, Child)
                 }) ?? []
 
             return (

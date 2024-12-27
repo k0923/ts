@@ -20,20 +20,65 @@ function useCount() {
     return countRef.current
 }
 
+const defaultData = {
+    test: {
+        type: 'or',
+        data: [
+            {
+                type: 'simple',
+                data: {},
+            },
+            {
+                type: 'simple',
+                data: {},
+            },
+            {
+                type: 'or',
+                data: [
+                    {
+                        type: 'simple',
+                        data: {},
+                    },
+                    {
+                        type: 'or',
+                        data: [
+                            {
+                                type: 'simple',
+                                data: {},
+                            },
+                            {
+                                type: 'simple',
+                                data: {},
+                            },
+                            {
+                                type: 'simple',
+                                data: {},
+                            },
+                        ],
+                    },
+                    {
+                        type: 'simple',
+                        data: {},
+                    },
+                ],
+            },
+            {
+                type: 'simple',
+                data: {},
+            },
+        ],
+    },
+}
+
 const FormItem = Form.Item
 
-Form.Item = (props) => {
-    const { children,...otherProps } = props
+Form.Item = props => {
+    const { children, ...otherProps } = props
     if (typeof children === 'function') {
         return <FormItem {...props}></FormItem>
     }
 
-   
-    const newChildren = (
-        <>
-            {children}
-        </>
-    )
+    const newChildren = <>{children}</>
     return <FormItem {...otherProps}>{newChildren}</FormItem>
 }
 
@@ -47,8 +92,8 @@ const itemEditor = new ObjectEditor<SimpleCondition<string, string, string>>({
                         const { path, onChange } = props
                         return (
                             <Form.Item
+                                wrapperCol={{ span: 24 }}
                                 field={path.path.join('.')}
-                                noStyle={{ showErrorTip: true }}
                                 rules={[{ required: true }]}
                             >
                                 <Select value={path.value} placeholder={`${count}`} onChange={onChange}>
@@ -65,8 +110,8 @@ const itemEditor = new ObjectEditor<SimpleCondition<string, string, string>>({
                         const { path, onChange } = props
                         return (
                             <Form.Item
+                                wrapperCol={{ span: 24 }}
                                 field={path.path.join('.')}
-                                noStyle={{ showErrorTip: true }}
                                 rules={[{ required: true }]}
                             >
                                 <Select value={path.value} placeholder={`${count}`} onChange={onChange}>
@@ -83,19 +128,18 @@ const itemEditor = new ObjectEditor<SimpleCondition<string, string, string>>({
                         const { path, onChange } = props
                         return (
                             <Form.Item
+                                wrapperCol={{ span: 24 }}
                                 field={path.path.join('.')}
-                                noStyle={{ showErrorTip: true }}
                                 rules={[{ required: true }]}
                             >
                                 <Input
                                     value={path.value}
                                     placeholder={`${count}`}
                                     onChange={v => {
-                                       
                                         onChange(v)
                                     }}
                                 />
-                             </Form.Item>
+                            </Form.Item>
                         )
                     },
                 }),
@@ -140,29 +184,27 @@ const itemWrapper = (option: ItemWrapper) => {
     const value = path.value
     if (value && value.type === 'simple') {
         return (
-            <Form.Item key={index} className="condition_item" wrapperCol={{ span: 24 }}>
-                <Grid.Row gutter={4}>
-                    <Grid.Col flex="auto">{Node}</Grid.Col>
-                    <Grid.Col flex="24px">
-                        <Space>
-                            <Button onClick={remove}>删除</Button>
-                            <Button
-                                onClick={() => {
-                                    add(
-                                        {
-                                            type: 'or',
-                                            data: [{ type: 'simple', data: {} }],
-                                        },
-                                        index + 1
-                                    )
-                                }}
-                            >
-                                添加
-                            </Button>
-                        </Space>
-                    </Grid.Col>
-                </Grid.Row>
-            </Form.Item>
+            <Grid.Row key={index} className="condition_item">
+                <Grid.Col flex="auto">{Node}</Grid.Col>
+                <Grid.Col flex="24px">
+                    <Space>
+                        <Button onClick={remove}>删除</Button>
+                        <Button
+                            onClick={() => {
+                                add(
+                                    {
+                                        type: 'or',
+                                        data: [{ type: 'simple', data: {} }],
+                                    },
+                                    index + 1
+                                )
+                            }}
+                        >
+                            添加
+                        </Button>
+                    </Space>
+                </Grid.Col>
+            </Grid.Row>
         )
     } else {
         return (
@@ -177,11 +219,12 @@ const groupWrapper = (option: GroupWrapper) => {
     const divRef = useRef<HTMLDivElement>(null)
     const { add, level, remove, Node, path } = option
     const value = path.value
+    let Comp: React.ReactNode
     if (!value || !value.data || value.data.length === 0) {
-        return (
+        Comp = (
             <Button
                 onClick={() => {
-                    if (value) {
+                    if (value && Object.keys(value).length > 0) {
                         add({
                             type: 'simple',
                             data: {},
@@ -202,81 +245,102 @@ const groupWrapper = (option: GroupWrapper) => {
                 添加条件
             </Button>
         )
-    }
-    const btnGroups = (
-        <Space>
-            <Button
-                onClick={() => {
-                    add({
-                        type: 'simple',
-                        data: {},
-                    })
-                }}
-            >
-                添加条件
-            </Button>
-            <Button
-                type="primary"
-                onClick={() => {
-                    add({
-                        type: 'or',
-                        data: [
-                            {
-                                type: 'simple',
-                                data: {},
-                            },
-                        ],
-                    })
-                }}
-            >
-                添加条件组
-            </Button>
-            {level > 0 && (
+    } else {
+        const btnGroups = (
+            <Space>
                 <Button
-                    status="danger"
-                    onMouseEnter={() => {
-                        divRef.current?.classList.add('hover')
+                    onClick={() => {
+                        add({
+                            type: 'simple',
+                            data: {},
+                        })
                     }}
-                    onMouseLeave={() => {
-                        divRef.current?.classList.remove('hover')
-                    }}
-                    onClick={remove}
                 >
-                    删除条件组
+                    添加条件
                 </Button>
-            )}
-        </Space>
-    )
+                <Button
+                    type="primary"
+                    onClick={() => {
+                        add({
+                            type: 'or',
+                            data: [
+                                {
+                                    type: 'simple',
+                                    data: {},
+                                },
+                            ],
+                        })
+                    }}
+                >
+                    添加条件组
+                </Button>
+                {level > 0 && (
+                    <Button
+                        status="danger"
+                        onMouseEnter={() => {
+                            divRef.current?.classList.add('hover')
+                        }}
+                        onMouseLeave={() => {
+                            divRef.current?.classList.remove('hover')
+                        }}
+                        onClick={remove}
+                    >
+                        删除条件组
+                    </Button>
+                )}
+            </Space>
+        )
 
-    let subContainerClass = ''
+        let subContainerClass = ''
 
-    if (level > 0) {
-        subContainerClass = 'condition_sub_container'
+        if (level > 0) {
+            subContainerClass = 'condition_sub_container'
+        }
+        console.log(value.data)
+
+        if (value.data.length === 1) {
+            Comp = (
+                <Form.Item noStyle field={path.path.join('.')}>
+                    <div ref={divRef} className={subContainerClass}>
+                        <div className="condition_items_container single">{Node.data}</div>
+                        <div>{btnGroups}</div>
+                    </div>
+                </Form.Item>
+            )
+        } else {
+            Comp = (
+                <Form.Item noStyle field={path.path.join('.')}>
+                    <div ref={divRef} className={subContainerClass}>
+                        <div className="condition_container">
+                            <div className="condition_opt_container">{Node.type}</div>
+                            <div className="condition_items_container">
+                                <Form.Item noStyle>{Node.data}</Form.Item>
+                            </div>
+                        </div>
+                        <div>{btnGroups}</div>
+                    </div>
+                </Form.Item>
+            )
+        }
     }
+    const pathStr = path.path.join('.')
 
-    if (value.data.length === 1) {
+    if (!pathStr) {
         return (
-            <Form.Item noStyle field={path.path.join('.')}>
-                <div ref={divRef} className={subContainerClass}>
-                    <div className="condition_items_container single">{Node.data}</div>
-                    <div>{btnGroups}</div>
-                </div>
-            </Form.Item>
+            <>
+                <Form.Item noStyle field="type" />
+                <Form.Item noStyle field="data" />
+                {Comp}
+            </>
         )
     }
 
     return (
-        <Form.Item noStyle field={path.path.join('.')}>
-            <div ref={divRef} className={subContainerClass}>
-                <div className="condition_container">
-                    <div className="condition_opt_container">{Node.type}</div>
-                    <div className="condition_items_container">
-                        <Form.Item noStyle>{Node.data}</Form.Item>
-                    </div>
-                </div>
-                <div>{btnGroups}</div>
-            </div>
-        </Form.Item>
+        <>
+            <Form.Item noStyle field={pathStr}>
+                {Comp}
+            </Form.Item>
+        </>
     )
 }
 
@@ -299,8 +363,11 @@ const groupOptEditor = new CommonEditor<string>({
 export default function () {
     const [form] = Form.useForm()
     const ctx = useMemo(() => new AcroFormContext(form), [])
-    // const ctx = useMemo(() => new DefaultFormContext({}), [])
-    const path = new Path(['a'], ctx)
+
+    // const ctx = useMemo(() => new DefaultFormContext(defaultData), [])
+    const path = new Path(['test'], ctx)
+    const p = path as any
+    // p.level = 0
     const Editor = useMemo(() => {
         const editor = BuildEditor({
             groupOptEditor: groupOptEditor,
@@ -313,21 +380,10 @@ export default function () {
 
     return (
         <>
-            <Form
-                scrollToFirstError
-                form={form}
-                onSubmit={v => {
-                    console.log(form.getFieldsValue())
-                    console.log(v)
-                }}
-                onValuesChange={(v, vs) => {
-                    console.log(vs)
-                }}
-            >
+            <Form initialValues={defaultData} scrollToFirstError={true} form={form}>
                 <ArcoFormBody path={path} editor={Editor} />
                 <Button htmlType="submit">提交</Button>
             </Form>
-            {/* <ArcoFormBody path={path} editor={Editor} /> */}
             <ShowData ctx={ctx} />
         </>
     )

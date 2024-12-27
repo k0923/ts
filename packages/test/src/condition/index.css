@@ -57,14 +57,14 @@
 }
 
 .condition_items_container > .condition_item:first-child::before {
-    top: 50%;
+    top: calc(50% - 12px);
     width: 15px;
     border-top: 2px solid blue;
     border-top-left-radius: 7px;
 }
 
 .condition_items_container > .condition_item:last-child::before {
-    bottom: 50%;
+    bottom: calc(50% + 12px);
     width: 15px;
     border-bottom: 2px solid blue;
     border-bottom-left-radius: 7px;

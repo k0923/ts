@@ -237,7 +237,7 @@ const UserEditor = new ObjectEditor<User>({
     },
 })
 
-function useCount() {
+export function useCount() {
     const countRef = useRef(0)
     countRef.current += 1
     return countRef.current
@@ -314,15 +314,20 @@ export class AcroFormContext implements IFormContext {
     unregisterHook(fn: ContextDataHandler) {
         this.hooks.delete(fn)
     }
+
     setValue(path: PathSegment[], value: any) {
-        this.form.setFieldValue(path.join('.'), value)
-        this.hooks.forEach(fn => fn(path, value, this.form.getFieldsValue()))
+        const pathStr = path.join('.')
+        if (!pathStr) {
+            this.form.setFieldsValue(value)
+        } else {
+            this.form.setFieldValue(pathStr, value)
+        }
+        const v = this.form.getFieldsValue()
+        this.hooks.forEach(fn => fn(path, value, v))
     }
     getValue(path: PathSegment[]) {
         const pathStr = path.join('.')
-        // console.log(pathStr)
         if (!pathStr) {
-            // console.log(this.form.getFieldsValue())
             return this.form.getFieldsValue()
         }
         return this.form.getFieldValue(pathStr)

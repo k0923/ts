@@ -1,13 +1,4 @@
-import {
-    Button,
-    Form,
-    Grid,
-    Input,
-    InputNumber,
-    Radio,
-    Checkbox,
-    Divider,
-} from '@arco-design/web-react'
+import { Button, Form, Grid, Input, InputNumber, Radio, Checkbox, Divider } from '@arco-design/web-react'
 import {
     ArrayEditor,
     CommonEditor,
@@ -18,9 +9,10 @@ import {
     PathSegment,
 } from '@k0923/react'
 import { useEffect, useMemo, useState } from 'react'
+import { useCount } from './ArcoForm'
 
-function buildPath(path:Path,segment:PathSegment):string {
-    return [...path.path,segment].join('.')
+function buildPath(path: Path, segment: PathSegment): string {
+    return [...path.path, segment].join('.')
 }
 
 export interface Company {
@@ -51,9 +43,7 @@ export interface ConsoleGameHobby {
 
 const CommonGameEditor = new CommonEditor<string[]>({
     Component: props => {
-        return (
-            <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
-        )
+        return <Checkbox.Group {...props} options={['游戏1', '游戏2', '游戏3']} />
     },
 })
 
@@ -61,14 +51,9 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
     items: {
         platform: new CommonEditor<'xbox' | 'ps' | 'switch'>({
             Component: props => {
-                const {path} = props
-                console.log(path.parent?.value,path.parent?.parent?.value,path.parent?.parent?.parent?.value)
-                return (
-                    <Radio.Group
-                        {...props}
-                        options={['xbox', 'ps', 'switch']}
-                    />
-                )
+                const { path } = props
+                console.log(path.parent?.value, path.parent?.parent?.value, path.parent?.parent?.parent?.value)
+                return <Radio.Group {...props} options={['xbox', 'ps', 'switch']} />
             },
         }),
         games: CommonGameEditor,
@@ -78,12 +63,12 @@ const ConsoleGameEditor = new ObjectEditor<ConsoleGameHobby['data']>({
 export type GameHobby = MobileGameHobby | ConsoleGameHobby
 
 const GameEditor = new ObjectEditor<GameHobby>({
-    valueHandler:(value,last) => {
-        console.log(JSON.stringify(last),JSON.stringify(value))
-        if(value?.type !== last?.type) {
+    valueHandler: (value, last) => {
+        console.log(JSON.stringify(last), JSON.stringify(value))
+        if (value?.type !== last?.type) {
             return {
                 ...value,
-                data:undefined
+                data: undefined,
             }
         }
         return value
@@ -101,7 +86,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
         }),
         data: new FuncEditor<any>({
             cacheSize: 10,
-            func: (value, path) => {
+            func: path => {
                 const parentValue = path.parent?.value
                 if (parentValue?.type === 'console') {
                     return ConsoleGameEditor
@@ -109,7 +94,7 @@ const GameEditor = new ObjectEditor<GameHobby>({
                 if (parentValue?.type === 'mobile') {
                     return CommonGameEditor
                 }
-                return 
+                return
             },
         }),
     },
@@ -119,7 +104,13 @@ const GameEditor = new ObjectEditor<GameHobby>({
             <>
                 <Form.Item label="类型">{props.Components.type}</Form.Item>
                 <Form.Item label="数据">{props.Components.data}</Form.Item>
-                <Button onClick={()=>{props.update(undefined as any)}}>Reset</Button>
+                <Button
+                    onClick={() => {
+                        props.update(undefined as any)
+                    }}
+                >
+                    Reset
+                </Button>
             </>
         )
     },
@@ -159,13 +150,12 @@ const UserEditor = new ObjectEditor<User>({
         Hobbies: new ArrayEditor<GameHobby[]>({
             editor: GameEditor,
             Wrapper: props => {
-                const { add, Components, remove, move, value } = props
+                const { add, Components, remove, path } = props
+                const value = path.value
                 if (!value || value.length === 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>
-                                添加爱好
-                            </Button>
+                            <Button onClick={() => add(undefined, 0)}>添加爱好</Button>
                         </Form.Item>
                     )
                 }
@@ -175,9 +165,7 @@ const UserEditor = new ObjectEditor<User>({
                             return (
                                 <Form.Item key={index} label={`爱好${index}`}>
                                     <Grid.Row>
-                                        <Grid.Col span={10}>
-                                            {item.Comp}
-                                        </Grid.Col>
+                                        <Grid.Col span={10}>{item.Comp}</Grid.Col>
                                         <Grid.Col span={10}>
                                             <Button
                                                 onClick={() => {
@@ -205,11 +193,7 @@ const UserEditor = new ObjectEditor<User>({
         }),
     },
     Wrapper: props => {
-        const [count, setCount] = useState(0)
-        
-        useEffect(() => {
-            setCount(count + 1)
-        }, [props.value])
+        const count = useCount()
         return (
             <>
                 <Divider>{count}</Divider>
@@ -251,17 +235,13 @@ const CompanyEditor = new ObjectEditor<Company>({
                 // }
                 return value
             },
-            Wrapper: ({ value, add, remove, Components }) => {
-                const [count, setCount] = useState(0)
-                useEffect(() => {
-                    setCount(count + 1)
-                }, [value])
+            Wrapper: ({ add, remove, Components, path }) => {
+                const count = useCount()
+                const value = path.value
                 if (!value || value.length == 0) {
                     return (
                         <Form.Item label=" ">
-                            <Button onClick={() => add(undefined, 0)}>
-                                添加员工
-                            </Button>
+                            <Button onClick={() => add(undefined, 0)}>添加员工</Button>
                         </Form.Item>
                     )
                 }
@@ -271,16 +251,8 @@ const CompanyEditor = new ObjectEditor<Company>({
                             <Grid.Row>
                                 <Grid.Col span={20}>{item.Comp}</Grid.Col>
                                 <Grid.Col span={4}>
-                                    <Button onClick={() => remove(index)}>
-                                        删除
-                                    </Button>
-                                    <Button
-                                        onClick={() =>
-                                            add(undefined, index + 1)
-                                        }
-                                    >
-                                        添加
-                                    </Button>
+                                    <Button onClick={() => remove(index)}>删除</Button>
+                                    <Button onClick={() => add(undefined, index + 1)}>添加</Button>
                                 </Grid.Col>
                             </Grid.Row>
                         </Form.Item>
@@ -296,5 +268,11 @@ export default function () {
     const path = new Path([], new DefaultFormContext({}))
 
     const Editor = useMemo(() => CompanyEditor.build(), [])
-    return <Editor path={path} />
+    return (
+        <>
+            <Editor path={path} />
+            <Button>提交</Button>
+            <pre>{JSON.stringify(path.value, null, 2)}</pre>
+        </>
+    )
 }

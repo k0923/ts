@@ -40,7 +40,7 @@ export abstract class BaseEditor<out Value = any> {
     /**
      * Map of data handlers for managing state updates
      */
-    protected hooks: Map<string, DataHandler<any>> = new Map()
+    protected hooks: Map<string, DataHandler> = new Map()
 
     /**
      * Process a value before it's set in the editor
@@ -123,10 +123,13 @@ export abstract class BaseEditor<out Value = any> {
      * @returns Current value at the path
      */
     protected useVersion(path: Path): void {
+        // 这里为什么要用自增的版本号是由于值可能是由上层Editor设置，
+        // 这样就可以在值改变的时候重新渲染
         const [_, setVersion] = useState<number>(0)
         useEffect(() => {
-            const pathStr = path.path.flat().join('.')
-            this.hooks.set(pathStr, ()=>setVersion(v=>v+1))
+            const pathStr = path.path.join('.')
+            const fn = () => setVersion(v => v + 1)
+            this.hooks.set(pathStr, fn)
             return () => {
                 this.hooks.delete(pathStr)
             }

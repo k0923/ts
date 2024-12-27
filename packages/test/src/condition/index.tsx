@@ -398,7 +398,7 @@ export default function () {
         const options: ConditionOptions<string, string, string> = {
             xPicker: props => {
                 const count = useCount()
-                const {path,onChange} = props
+                const { path, onChange } = props
                 return (
                     <Select value={path.value} onChange={onChange} placeholder={`${count}`}>
                         <Select.Option value={'name'}>姓名</Select.Option>
@@ -408,7 +408,7 @@ export default function () {
             },
             operator: props => {
                 const count = useCount()
-                const {path,onChange} = props
+                const { path, onChange } = props
                 return (
                     <Select value={path.value} onChange={onChange} placeholder={`${count}`}>
                         <Select.Option value={Operator.equals}>等于</Select.Option>
@@ -418,8 +418,8 @@ export default function () {
             },
             yPicker: props => {
                 const count = useCount()
-                const {path,onChange} = props
-                return <Input value={path.value} onChange={onChange}  placeholder={`${count}`} />
+                const { path, onChange } = props
+                return <Input value={path.value} onChange={onChange} placeholder={`${count}`} />
             },
         }
 
@@ -446,6 +446,7 @@ export function ShowData(props: { ctx: IFormContext }) {
     const [data, setData] = useState(props.ctx.getValue([]))
     useEffect(() => {
         props.ctx.registerHook((_path, _value, totalValue) => {
+            console.log(_value, totalValue)
             setData({ ...totalValue })
         })
     }, [props.ctx])

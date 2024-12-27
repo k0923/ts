@@ -1,11 +1,13 @@
-function Test({ name, age }: { name: string; age: number }) {
-    console.log(name, age)
+interface User {
+    name: string
+    age: number
 }
 
-Test({ name: 'hello', age: 12 })
+const u = new Proxy<User[]>([] as User[], {
+    get(target, p) {
+        console.log(typeof p)
+        console.log(target, p)
+    },
+})
 
-function Test1({ name, age }: { name: string; age: number }) {
-    Test({ name, age: 0 })
-}
-
-Test1({ name: 'hello', age: 12 })
+u[0]

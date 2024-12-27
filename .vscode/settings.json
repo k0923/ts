@@ -1,3 +1,4 @@
 {
-    "marscode.internal.chatLanguage": "cn"
+    "marscode.internal.chatLanguage": "cn",
+    "liveServer.settings.port": 5502
 }

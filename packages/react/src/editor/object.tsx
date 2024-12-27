@@ -16,7 +16,7 @@ export interface ObjectEditorConfig<Value = any> extends BaseEditorConfig<Value>
 }
 
 export class ObjectEditor<Value = any> extends BaseEditor<Value> {
-    private children: Map<string, BaseEditor<any>> = new Map()
+    private children: Partial<{ [key in keyof Value]: BaseEditor<Value[key]> }> = {}
 
     private Wrapper?: React.FC<ObjectWrapperProps<Value>>
 
@@ -26,13 +26,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
         super()
         this.Wrapper = Wrapper
         this.handler = valueHandler
-        Object.entries(items).forEach(([key, editor]) => {
-            if (editor && key) {
-                const E = editor as BaseEditor<any>
-                E.setParent(this)
-                this.children.set(key, editor as BaseEditor<any>)
-            }
-        })
+        this.children = items
     }
 
     processValue(value: Value, lastValue: Value): Value {
@@ -43,10 +37,12 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
     }
 
     build(): FormNode {
-        const items = Array.from(this.children).map(([k, n]) => {
-            return {
-                key: k,
-                Item: n.build(),
+        const items = new Map<string, FormNode>()
+
+        Object.entries(this.children).forEach(([key, editor]) => {
+            if (editor && key) {
+                const node = (editor as BaseEditor<any>).build()
+                items.set(key, node)
             }
         })
 
@@ -54,28 +50,41 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
             const { path } = props
             this.useVersion(path)
 
-            const Components = items.reduce<{
-                [key: string]: React.ReactElement
-            }>((p, c) => {
-                p[c.key as Extract<keyof Value, string>] = (
-                    <c.Item
-                        {...props}
-                        key={c.key}
-                        path={path.next(c.key, (parent, child) => {
-                            return { ...parent, [c.key]: child }
-                        })}
-                    />
-                )
-                return p
-            }, {})
-
             const Node = () => {
                 if (this.Wrapper) {
+                    /*
+            为什么要使用Proxy,是因为希望希望子元素的path的next方法可以在Wrapper结束后执行
+            */
+                    const proxy = new Proxy<
+                        Partial<{
+                            [key in keyof Value]: React.ReactElement
+                        }>
+                    >(
+                        {},
+                        {
+                            get: (target, p) => {
+                                const key = p as string
+                                const Element = items.get(key)
+                                if (Element) {
+                                    return (
+                                        <Element
+                                            {...props}
+                                            path={path.next(key, (parent, child) => {
+                                                return { ...parent, [key]: child }
+                                            })}
+                                        />
+                                    )
+                                }
+                                return null
+                            },
+                        }
+                    )
+
                     return (
                         <this.Wrapper
                             ctx={props}
                             path={path}
-                            Components={Components as any}
+                            Components={proxy}
                             update={(v: Value) => {
                                 this.setValue(path, v)
                             }}
@@ -83,7 +92,7 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
                     )
                 }
 
-                return Object.values(Components).map(c => c)
+                return Array.from(items).map(([key, Item]) => <Item key={key} {...props} path={path.next(key)} />)
             }
 
             return Node()
