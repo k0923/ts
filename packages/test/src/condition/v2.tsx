@@ -380,7 +380,9 @@ export default function () {
 
     return (
         <>
-            <Form initialValues={defaultData} scrollToFirstError={true} form={form}>
+            <Form onValuesChange={(_,all)=>{
+                console.log(all)
+            }} initialValues={defaultData} scrollToFirstError={true} form={form} onSubmit={console.log}>
                 <ArcoFormBody path={path} editor={Editor} />
                 <Button htmlType="submit">提交</Button>
             </Form>

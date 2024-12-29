@@ -47,43 +47,7 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
 ): BaseEditor<Condition<X, Opt, Y>> {
     let GroupConditionEditor: ObjectEditor<GroupCondition<X, Opt, Y>> | null = null
 
-    const filterEmptyCondition = (value: GroupCondition<X, Opt, Y>, last: GroupCondition<X, Opt, Y>) => {
-        if (value) {
-            if (value.type === 'and' || value.type === 'or') {
-                if (last && last.data && value.data.length !== last.data.length) {
-                    return {
-                        type: value.type,
-                        data: value.data.filter(it => {
-                            if (!it) {
-                                return false
-                            }
-                            if (it.type === 'simple') {
-                                return true
-                            }
-                            return it.data && it.data.length > 0
-                        }),
-                    }
-                }
-                if (value.data.some(it => !it || (it.type !== 'simple' && (!it.data || it.data.length === 0)))) {
-                    return {
-                        type: value.type,
-                        data: value.data.filter(it => {
-                            if (!it) {
-                                return false
-                            }
-                            if (it.type === 'simple') {
-                                return true
-                            }
-                            return it.data && it.data.length > 0
-                        }),
-                    }
-                }
-            }
-        }
-
-        return value
-    }
-
+   
     let rootPath: Path | null = null
 
     const fn = (path?: Path) => {
@@ -136,7 +100,6 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                             const subPathArray = path.path.slice(rootPath.path.length)
                             level = subPathArray.filter(it => it === 'data').length
                         }
-                        console.log('level:', level)
 
                         return options.groupWrapper({
                             Node: {
@@ -172,7 +135,29 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                         })
                     },
                     valueHandler: (value, last) => {
-                        return filterEmptyCondition(value, last)
+                        if (value) {
+                            if(!value.data) {
+                                return undefined as any
+                            }
+                            if(value.data.length === 0) {
+                                return undefined as any
+                            }
+                            if(value.data.some(it => !it)) {
+                                const items = value.data.filter(it=>it)
+                                if(items.length === 0) {
+                                    return undefined as any
+                                }
+                                return {
+                                    ...value,
+                                    data: items
+                                }
+                            }
+                            if(value.data.length < 2) {
+                                return {...value}
+                            }                            
+                        }
+                
+                        return value
                     },
                 })
             }

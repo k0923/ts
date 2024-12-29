@@ -1,6 +1,6 @@
 {
     "name": "@k0923/react",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "React component library for building dynamic forms and conditions",
     "files": [
         "dist",

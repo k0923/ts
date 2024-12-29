@@ -444,12 +444,12 @@ export default function () {
 
 export function ShowData(props: { ctx: IFormContext }) {
     const [data, setData] = useState(props.ctx.getValue([]))
-    useEffect(() => {
-        props.ctx.registerHook((_path, _value, totalValue) => {
-            console.log(_value, totalValue)
-            setData({ ...totalValue })
-        })
-    }, [props.ctx])
+    // useEffect(() => {
+    //     props.ctx.registerHook((_path, _value, totalValue) => {
+    //         console.log(_value, totalValue)
+    //         setData({ ...totalValue })
+    //     })
+    // }, [props.ctx])
 
     return <pre>{JSON.stringify(data, null, 2)}</pre>
 }

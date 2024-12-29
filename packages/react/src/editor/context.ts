@@ -4,8 +4,8 @@ export type PathSegment = string | number
 export interface IFormContext {
     setValue(path: PathSegment[], value: any): void
     getValue(path: PathSegment[]): any
-    registerHook(fn: ContextDataHandler): void
-    unregisterHook(fn: ContextDataHandler): void
+    // registerHook(fn: ContextDataHandler): void
+    // unregisterHook(fn: ContextDataHandler): void
 }
 
 export type ContextDataHandler = (path: PathSegment[], value: any, totalValue: any) => void
@@ -68,11 +68,11 @@ export class Path<Value = any> {
         return new Path(segment, this.ctx, this, fn)
     }
 
-    setValue(value: any) {
-        this.ctx.setValue(this.path, value)
-    }
+    // setValue(value: any) {
+    //     this.ctx.setValue(this.path, value)
+    // }
 
-    getValue(segment: PathSegment[]) {
-        return this.ctx.getValue(segment)
-    }
+    // getValue(segment: PathSegment[]) {
+    //     return this.ctx.getValue(segment)
+    // }
 }

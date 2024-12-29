@@ -323,6 +323,10 @@ export class AcroFormContext implements IFormContext {
             this.form.setFieldValue(pathStr, value)
         }
         const v = this.form.getFieldsValue()
+        console.log(v,this.form.getFieldValue("test"))
+        setTimeout(()=>{
+            console.log(this.form.getFieldsValue())
+        },200)
         this.hooks.forEach(fn => fn(path, value, v))
     }
     getValue(path: PathSegment[]) {

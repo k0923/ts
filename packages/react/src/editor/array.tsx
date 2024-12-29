@@ -95,6 +95,7 @@ export class ArrayEditor<Value = any> extends BaseEditor<Value> {
             }
             const removedData = [...currentValue]
             removedData.splice(index, 1)
+            console.log(currentValue,removedData)
             changeHandler(path, removedData)
         }
 

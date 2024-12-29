@@ -70,7 +70,7 @@ export abstract class BaseEditor<out Value = any> {
      * @param value New value
      */
     refresh(path: Path, value: any) {
-        path.setValue(value)
+        path.context.setValue(path.path, value)
         this.hooks.get(path.path.join('.'))?.(value)
     }
 

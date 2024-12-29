@@ -41,7 +41,9 @@ export class ObjectEditor<Value = any> extends BaseEditor<Value> {
 
         Object.entries(this.children).forEach(([key, editor]) => {
             if (editor && key) {
-                const node = (editor as BaseEditor<any>).build()
+                const E = (editor as BaseEditor<any>)
+                E.setParent(this)
+                const node = E.build()
                 items.set(key, node)
             }
         })
