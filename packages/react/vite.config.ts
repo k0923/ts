@@ -25,7 +25,7 @@ export default defineConfig({
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
             name: 'form',
-            formats: ['es', 'umd'],
+            formats: ['es'],
             fileName: format => `index.${format}.js`,
         },
         rollupOptions: {
@@ -36,6 +36,13 @@ export default defineConfig({
                     'react-dom': 'ReactDOM',
                     lodash: '_',
                 },
+                // inlineDynamicImports: false,
+                // manualChunks(id) {
+                //     if (id.includes('node_modules')) {
+                //         // 将 node_modules 中的依赖打包到 vendor 文件中
+                //         return 'vendor'
+                //     }
+                // },
             },
         },
     },

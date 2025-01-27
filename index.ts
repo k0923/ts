@@ -1,13 +1,32 @@
-interface User {
-    name: string
-    age: number
+
+export abstract class BaseWidget {
+    constructor() { }
+
+    abstract get type(): string
 }
 
-const u = new Proxy<User[]>([] as User[], {
-    get(target, p) {
-        console.log(typeof p)
-        console.log(target, p)
-    },
-})
+export class WidgetHub {
+    private _widgets = new Map<string, BaseWidget>()
+    constructor(widgets?: Array<BaseWidget>) {
+        widgets?.forEach(widget => {
+            this.register(widget)
+        })
+    }
 
-u[0]
+    register(widget: BaseWidget) {
+        if (this._widgets.has(widget.type)) {
+            throw new Error(`widget ${widget.type} already registered`)
+        }
+        this._widgets.set(widget.type, widget)
+    }
+
+    get widgets(): BaseWidget[] {
+        return Array.from(this._widgets.values())
+    }
+
+    getWidget(type: string): BaseWidget | undefined {
+        return this._widgets.get(type)
+    }
+}
+
+

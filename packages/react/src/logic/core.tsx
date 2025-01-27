@@ -47,7 +47,6 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
 ): BaseEditor<Condition<X, Opt, Y>> {
     let GroupConditionEditor: ObjectEditor<GroupCondition<X, Opt, Y>> | null = null
 
-   
     let rootPath: Path | null = null
 
     const fn = (path?: Path) => {
@@ -136,27 +135,27 @@ export function BuildEditor<X = any, Opt = any, Y = any>(
                     },
                     valueHandler: (value, last) => {
                         if (value) {
-                            if(!value.data) {
+                            if (!value.data) {
                                 return undefined as any
                             }
-                            if(value.data.length === 0) {
+                            if (value.data.length === 0) {
                                 return undefined as any
                             }
-                            if(value.data.some(it => !it)) {
-                                const items = value.data.filter(it=>it)
-                                if(items.length === 0) {
+                            if (value.data.some(it => !it)) {
+                                const items = value.data.filter(it => it)
+                                if (items.length === 0) {
                                     return undefined as any
                                 }
                                 return {
                                     ...value,
-                                    data: items
+                                    data: items,
                                 }
                             }
-                            if(value.data.length < 2) {
-                                return {...value}
-                            }                            
+                            if (value.data.length < 2) {
+                                return { ...value }
+                            }
                         }
-                
+
                         return value
                     },
                 })

@@ -1,46 +1,95 @@
-import { useState } from 'react'
-import { IconDelete, IconArrowRise, IconArrowFall } from '@arco-design/web-react/icon'
-// import './App.css'
-import { sleep, userEditor } from './form/Form'
+import { Form, Input, InputNumber } from '@arco-design/web-react'
+import { Builder, InputWidget, WidgetHub, WidgetList } from './cardbuilder/widget'
+import Test from './dnd'
+const hub = new WidgetHub()
+hub.register(new InputWidget())
+import { atom, useAtom, useAtomValue } from 'jotai'
+import { SortTest } from './dnd/Sort'
+import { DndTest, MultipleSortableContexts } from './dndtest'
 
-import { Button, Form, Grid, Input, Space } from '@arco-design/web-react'
-import { useCount } from './form/ArcoForm'
-import Condition from './condition'
-import Condition2 from './condition/v2'
-import Test from './Test'
+const peopleAtom = atom({
+    name: 'hello',
+    age: 11,
+})
 
+const nameAtom = atom(
+    get => get(peopleAtom).name,
+    (get, set, newPrice) => {
+        set(peopleAtom, d => {
+            return {
+                ...d,
+                name: newPrice,
+            }
+        })
+    }
+)
+
+const ageAtom = atom(
+    get => get(peopleAtom).age,
+    (get, set, newPrice) => {
+        set(peopleAtom, d => {
+            return {
+                ...d,
+                age: newPrice,
+            }
+        })
+    }
+)
+
+function Name() {
+    const [name, setName] = useAtom(nameAtom)
+    console.log('hit name')
+    return (
+        <Form.Item label="Name">
+            <Input value={name} onChange={setName} />
+        </Form.Item>
+    )
+}
+
+function Age() {
+    console.log('hit age')
+    const [value, setValue] = useAtom(ageAtom)
+    return (
+        <Form.Item label="Name">
+            <InputNumber value={value} onChange={setValue} />
+        </Form.Item>
+    )
+}
+
+function Total() {
+    console.log('hit total')
+    const value = useAtomValue(peopleAtom)
+    return <pre>{JSON.stringify(value)}</pre>
+}
 function App() {
-    const [count, setCount] = useState(0)
-    const f = new Set<any>()
-    f.add(setCount)
-    console.log(Array.from(f).length)
-
-    return <Condition2 />
-
+    // return <Test />
+    // return <MultipleSortableContexts />
+    return <DndTest />
+    return <SortTest />
     // return (
-    //   <Form form={form}>
-    //     <F path={[]} />
-    //     <div>{count}</div>
+    //     <>
+    //         <Name />
+    //         <Age />
+    //         <Total />
+    //     </>
+    // )
+    // const [lowercaseText, setLowercaseText] = useAtom(textAtom)
+    // const [uppercaseText] = useAtom(uppercase)
+    // const handleChange = (e: any) => setLowercaseText(e.target.value)
+    // return (
+    //     <>
+    //         <div className="app">
+    //             <input value={lowercaseText} onChange={handleChange} />
+    //             <h1>{uppercaseText}</h1>
+    //         </div>
+    //         <B />
+    //     </>
+    // )
+}
 
-    //     {/* <Form.Item field="name" label="姓名" rules={[{
-    //       validator: async (v, cb) => {
-    //         await sleep(1000)
-    //         console.log(v)
-    //         cb("error")
-    //       }
-    //     }]}>
-    //       <InputProxy />
-    //     </Form.Item> */}
-    //     {/* <Form.Item field="company" noStyle>
-    //       <Form.Item label="公司名称" required={count < 5} field="company.name">
-    //         <Input />
-    //       </Form.Item>
-    //     </Form.Item> */}
-
-    //     <Button onClick={() => { form.setFieldValue("name", "hello") }}>Test</Button>
-
-    //     <Button onClick={() => setCount(count + 1)}>Count</Button>
-    //   </Form>
+function B() {
+    const [uppercaseText] = useAtom(uppercase)
+    return <h1>{uppercaseText}</h1>
 }
 
 export default App

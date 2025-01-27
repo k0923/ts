@@ -1,4 +1,9 @@
 {
     "marscode.internal.chatLanguage": "cn",
-    "liveServer.settings.port": 5502
+    "liveServer.settings.port": 5502,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnPaste": true,
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }

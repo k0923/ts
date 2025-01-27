@@ -212,7 +212,7 @@ function getEditor<X, Opt, Y>(options: ConditionOptions<X, Opt, Y>) {
                                 return (
                                     <>
                                         {Components.map((item, index) => {
-                                            if (item.value?.type === 'simple') {
+                                            if (item.path.value?.type === 'simple') {
                                                 return (
                                                     <Form.Item
                                                         key={index}

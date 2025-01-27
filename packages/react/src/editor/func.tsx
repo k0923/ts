@@ -4,11 +4,11 @@ import { BaseEditor, BaseEditorConfig, FormNode, ValueHandler } from './editor'
 
 export interface FuncEditorConfig<Value> extends BaseEditorConfig<Value> {
     cacheSize?: number
-    func: (path: Path) => BaseEditor<Value> | undefined
+    func: (path: Path<Value>) => BaseEditor<Value> | undefined
 }
 
 export class FuncEditor<Value> extends BaseEditor<Value> {
-    private fn: (path: Path) => BaseEditor<Value> | undefined
+    private fn: (path: Path<Value>) => BaseEditor<Value> | undefined
 
     private cache: LRUCache<BaseEditor<Value>, FormNode>
 
